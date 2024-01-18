@@ -50,6 +50,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auxiliary\Enums.cs" />
+    <Compile Include="Auxiliary\RowFullEventClass.cs" />
+    <Compile Include="Auxiliary\RowTracker.cs" />
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Dialogs\GamerNameDialog.xaml.cs">
       <DependentUpon>GamerNameDialog.xaml</DependentUpon>
@@ -168,5 +171,6 @@
   <ItemGroup>
     <None Include="Resources\QuestionMark.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

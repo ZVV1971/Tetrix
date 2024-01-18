@@ -9,7 +9,7 @@ using TetrisFigures.Interfaces;
 namespace TetrisTests.CellGrid
 {
     [Parallelizable]
-    class CellGridBasicTests
+    public class CellGridBasicTests
     {
         public TetrisCellGrid cellGrid;
 
@@ -38,7 +38,7 @@ namespace TetrisTests.CellGrid
     }
 
     [Parallelizable]
-    class TetrisCellGridClearanceTests
+    public class TetrisCellGridClearanceTests
     {
         public TetrisCellGrid tetrisCellGrid;
 
@@ -53,11 +53,11 @@ namespace TetrisTests.CellGrid
         public void TestCellGridCellsVisibility(int w, int h, Visibility v)
         {
             //make one rectangle visible
-            tetrisCellGrid.cells[w, h].rect.Visibility = Visibility.Visible;
+            tetrisCellGrid.Cells[w, h].rect.Visibility = Visibility.Visible;
             //Call clear method
             tetrisCellGrid.ClearGrid();
             //check if clearance did work
-            Assert.AreEqual(tetrisCellGrid.cells[w,h].rect.Visibility, Visibility.Hidden);
+            Assert.AreEqual(tetrisCellGrid.Cells[w,h].rect.Visibility, Visibility.Hidden);
         }
 
         public static object[] TetrisCellGridVisibilites =
@@ -68,7 +68,7 @@ namespace TetrisTests.CellGrid
 
     [Parallelizable]
     [Apartment(ApartmentState.STA)]
-    class TetrisCellGridInsertionTests
+    public class TetrisCellGridInsertionTests
     {
         public TetrisCellGrid tetrisCellGrid;
 
@@ -78,8 +78,7 @@ namespace TetrisTests.CellGrid
             tetrisCellGrid = new TetrisCellGrid(400, 800);
         }
 
-        [TestCaseSource("GetCellControlls"), Description("Test that the clear method works")]
-        //[TestCase, Description("Test if Figures is inserted into the grid")]
+        [TestCaseSource("GetCellControlls"), Description("Test if Figures is inserted into the grid")]
         [Apartment(ApartmentState.STA)]
         public void TestCellGridNewFigure(string figureName)
         {
@@ -93,7 +92,49 @@ namespace TetrisTests.CellGrid
             {
                 if (tp.Item2 >= 0)
                 {
-                    Assert.AreEqual(tetrisCellGrid.cells[tetrisCellGrid.cellWidth / 2 + tp.Item1, tp.Item2].rect.Visibility, Visibility.Visible);
+                    Assert.AreEqual(tetrisCellGrid.Cells[tetrisCellGrid.cellWidth / 2 + tp.Item1, tp.Item2].rect.Visibility, Visibility.Visible);
+                }
+            }
+        }
+
+        [TestCaseSource("GetCellControlls"), Description("Test if Figures is cleared after got inserted into the grid")]
+        [Apartment(ApartmentState.STA)]
+        public void TestCellGridNewClearFigure(string figureName)
+        {
+            Type objectType = Type.GetType(figureName);
+
+            TetrisUserControl c = (TetrisUserControl)Activator.CreateInstance(objectType);
+            //insert a new cell figure
+            tetrisCellGrid.InsertNewFigure(c);
+            //cleared it
+            tetrisCellGrid.ClearGrid();
+            //check if the figure is cleared
+            foreach (Tuple<int, int> tp in c.InitialPosition)
+            {
+                if (tp.Item2 >= 0)
+                {
+                    Assert.AreEqual(tetrisCellGrid.Cells[tetrisCellGrid.cellWidth / 2 + tp.Item1, tp.Item2].rect.Visibility, Visibility.Hidden);
+                }
+            }
+        }
+
+        [TestCaseSource("GetCellControlls"), Description("Test if Figures is frozen after got inserted into the grid")]
+        [Apartment(ApartmentState.STA)]
+        public void TestCellGridNewFreezeFigure(string figureName)
+        {
+            Type objectType = Type.GetType(figureName);
+
+            TetrisUserControl c = (TetrisUserControl)Activator.CreateInstance(objectType);
+            //insert a new cell figure
+            tetrisCellGrid.InsertNewFigure(c);
+            //cleared it
+            tetrisCellGrid.SetNeedsFreeze();
+            //check if the figure is cleared
+            foreach (Tuple<int, int> tp in c.InitialPosition)
+            {
+                if (tp.Item2 >= 0)
+                {
+                    Assert.AreEqual(tetrisCellGrid.Cells[tetrisCellGrid.cellWidth / 2 + tp.Item1, tp.Item2].NeedsFreeze, true);
                 }
             }
         }
