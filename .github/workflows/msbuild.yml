@@ -1,0 +1,76 @@
+name: "Workflow for master and release branches"
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request_target:
+    branches: [ "master" ]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: self-hosted
+    permissions: write-all
+
+    steps:
+    - uses: actions/checkout@v4.1.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1.3
+
+    - name: Restore NuGet packages
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        MSBuild -t:restore ${{env.SOLUTION_FILE_PATH}}
+        MSBuild -t:restore ${{env.SOLUTION_FILE_PATH}} -p:RestorePackagesConfig=true
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
+    
+    - name: Prepare ZIP Archive
+      uses: Amadevus/pwsh-script@v2.0.3
+      with:
+        script: |
+          # Get the TITLE of the latest release
+          $last_release = gh release list --limit 1;
+          Write-Host $last_release;
+          if(-not $last_release) {$last_release = '0.0.0.0'};
+          Write-Host $last_release;
+          
+          # Calculate the version number of the current release
+          $releasenumber = $(${env:GitBuildVersionSimple} + ".0");
+          Write-Host $releasenumber;
+          
+          # Compare the versions of the current release with the version of the lastest one
+          # and increment the revision number
+          if ($releasenumber -eq $last_release.Split()[0]) {
+            $releasenumber = $($releasenumber.Split(".")[0] + "."+$releasenumber.Split(".")[1] + "."+ $releasenumber.Split(".")[2] + "."+ ([int]($releasenumber.Split(".")[3]) + 1).ToString());
+          };
+          Write-Host $releasenumber;
+          
+          # Make the Zipped version of the release
+          Compress-Archive -Path ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\bin\Release\* -DestinationPath ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip"); 
+          
+          # Post release
+          gh release create  $releasenumber ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip") ;
+      continue-on-error: true

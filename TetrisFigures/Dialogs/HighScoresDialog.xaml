@@ -1,0 +1,109 @@
+﻿<Window x:Class="TetrisFigures.Dialogs.HighScoresDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TetrisFigures.Dialogs"
+        mc:Ignorable="d"
+        Title="High Scores" Height="450" Width="500" ResizeMode="NoResize">
+    <Window.Resources>
+        <Style x:Key="scoresNumbersStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="35"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="scoresStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="25"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="FontFamily" Value="Arial Narrow"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" x:Name="TitleRow"/>
+            <RowDefinition Height="*" x:Name="FirstScore"/>
+            <RowDefinition Height="*" x:Name="SecondScore"/>
+            <RowDefinition Height="*" x:Name="ThirdScore"/>
+            <RowDefinition Height="*" x:Name="FifthScore"/>
+            <RowDefinition Height="*" x:Name="SixthScore"/>
+            <RowDefinition Height="*" x:Name="SeventhScore"/>
+            <RowDefinition Height="*" x:Name="EighthScore"/>
+            <RowDefinition Height="*" x:Name="NinethScore"/>
+            <RowDefinition Height="*" x:Name="TenthScore"/>
+            <RowDefinition Height="*" x:Name="ButtonRow"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center"
+                   Text="Hall of fame:" VerticalAlignment="Center" FontSize="40" FontWeight="Black" 
+                   Foreground="DarkRed"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="1" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="2" 
+                  Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="3" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="4" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="5" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="6" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="7" Grid.Column="0" Text="7" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="8" Grid.Column="0" Text="8" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="9" Grid.Column="0" Text="9" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <TextBlock Grid.Row="10" Grid.Column="0" Text="10" 
+                   Style="{StaticResource scoresNumbersStyle}"/>
+        <!-- Name Placeholders -->
+        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="Gamer1"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="Gamer2"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="Gamer3"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="Gamer4"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="5" Grid.Column="1" x:Name="Gamer5"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="6" Grid.Column="1" x:Name="Gamer6"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="7" Grid.Column="1" x:Name="Gamer7"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="8" Grid.Column="1" x:Name="Gamer8"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="9" Grid.Column="1" x:Name="Gamer9"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="10" Grid.Column="1" x:Name="Gamer10"
+                   Style="{StaticResource scoresStyle}"/>
+        <!-- Score Placeholders -->
+        <TextBlock Grid.Row="1" Grid.Column="2" x:Name="Score1"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" x:Name="Score2"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="3" Grid.Column="2" x:Name="Score3"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" x:Name="Score4"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="5" Grid.Column="2" x:Name="Score5"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="6" Grid.Column="2" x:Name="Score6"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="7" Grid.Column="2" x:Name="Score7"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="8" Grid.Column="2" x:Name="Score8"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="9" Grid.Column="2" x:Name="Score9"
+                   Style="{StaticResource scoresStyle}"/>
+        <TextBlock Grid.Row="10" Grid.Column="2" x:Name="Score10"
+                   Style="{StaticResource scoresStyle}"/>
+    </Grid>
+</Window>

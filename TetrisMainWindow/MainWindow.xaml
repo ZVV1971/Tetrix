@@ -1,0 +1,182 @@
+﻿<Window x:Class="TetrisMainWindow.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TetrisMainWindow"
+        mc:Ignorable="d"
+        Title="Tetrix"
+        ResizeMode="NoResize" Width="650" Height="880" Focusable="False" Loaded="Window_Loaded" Closed="Window_Closed">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+    <Grid x:Name="OuterGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" x:Name="UpperRow"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow1"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow2"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow3"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow4"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow5"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow6"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow7"/>
+            <RowDefinition MinHeight="100" x:Name="CanvasRow8"/>
+            <RowDefinition Height="*" x:Name="BottomRow"/>
+            <RowDefinition Height="30" x:Name="StatusBarRow"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" x:Name="LeftColumn"/>
+            <ColumnDefinition x:Name="MainColumn" MinWidth="400"/>
+            <ColumnDefinition Width="*" x:Name="InterimColumn"/>
+            <ColumnDefinition x:Name="InfoColumn" MinWidth="200"/>
+            <ColumnDefinition Width="*" x:Name="RightColumn"/>
+        </Grid.ColumnDefinitions>
+        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+        </Grid>
+        <TextBlock Grid.Column="3" Grid.Row="8" x:Name="StartButton" FontSize="28" FontFamily="Arial" FontWeight="Black" Focusable="False"
+                   Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"
+                   VerticalAlignment="Center" HorizontalAlignment="Center">
+        </TextBlock>
+        <TextBlock Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
+            NEXT FIGURE:
+        </TextBlock>
+        <Canvas x:Name="nextFigureCell" Grid.Column="3" Grid.Row="2" Background="Black"/>
+        <Grid Grid.Column="3" Grid.Row="3" x:Name="LevelGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
+                LEVEL:
+            </TextBlock>
+            <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
+                       FontWeight="DemiBold" x:Name="ScoreCell" Text="{Binding Level}"/>
+        </Grid>
+        <Grid Grid.Column="3" Grid.Row="4" x:Name="ScoreGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="SCORE:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Score}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+        </Grid>
+        <Grid Grid.Column="3" Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold" TextWrapping="Wrap">
+                Rows to finish level:
+            </TextBlock>
+            <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
+                       FontWeight="DemiBold" x:Name="RowsToFinishCell" Text="{Binding RowsToFinish}"/>
+        </Grid>
+        <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Grid.RowSpan="2" FontSize="84" x:Name="GameOVerBlock"
+                   Foreground="Red" FontWeight="Black" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                   Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVis}}">
+            GAME OVER
+        </TextBlock>
+        <StatusBar Grid.Row="10" Grid.ColumnSpan="5" Grid.Column="0">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" HorizontalAlignment="Right" Text="Highest score:"/>
+                    <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding HighestScore}"
+                               ToolTip="Click on the text to view the highest scores" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown" />
+                </Grid>
+            </StatusBarItem>
+            <Separator Grid.Column="1"/>
+            <StatusBarItem Grid.Column="2">
+                <TextBlock Text="{Binding TopGamer}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="3">
+                <TextBlock Text="{Binding VersionNumber}"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
