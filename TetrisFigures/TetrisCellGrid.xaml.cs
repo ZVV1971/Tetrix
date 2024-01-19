@@ -14,6 +14,7 @@ namespace TetrisFigures
     /// </summary>
     public partial class TetrisCellGrid : UserControl, INotifyPropertyChanged
     {
+
         public TetrisCellGrid(int w, int h) : this()
         {
             cellHeight = h / 20;
@@ -37,22 +38,24 @@ namespace TetrisFigures
             {
                 for (int j = 0; j < cellHeight; j++)
                 {
-                    Rectangle rec = new Rectangle();
-                    rec.Stroke = new SolidColorBrush(Colors.White);
-                    rec.StrokeThickness = 1;
-                    rec.Visibility = Visibility.Visible;
+                    Rectangle rec = new Rectangle
+                    {
+                        Stroke = new SolidColorBrush(Colors.White),
+                        StrokeThickness = 1,
+                        Visibility = Visibility.Visible
+                    };
                     Grid.SetRow(rec, i);
                     Grid.SetColumn(rec, j);
                     WellGrid.Children.Add(rec);
 
-                    mainGrid[i, j] = new ElementaryCell() { rect = rec, IsFrozen = false };
+                    mainGrid[i, j] = new ElementaryCell() { rect = rec, IsFrozen = false, NeedsFreeze = false };
                 }
             }
 
             currentFigureCoordinates = new List<Tuple<int, int>>(4);
         }
 
-        private TetrisCellGrid()
+        public TetrisCellGrid()
         {
             InitializeComponent();
             DataContext = this;
@@ -78,7 +81,7 @@ namespace TetrisFigures
         private ElementaryCell[,] mainGrid;
         //holds the current figure
         private TetrisUserControl currentFigure;
-        private List<Tuple<int, int>>  currentFigureCoordinates;
+        private List<Tuple<int, int>> currentFigureCoordinates;
 
         public int cellWidth 
         {
@@ -96,7 +99,7 @@ namespace TetrisFigures
             get { return WellGrid; }
         }
 
-        public ElementaryCell[,] cells
+        public ElementaryCell[,] Cells
         {
             get { return mainGrid; }
         }
@@ -119,8 +122,26 @@ namespace TetrisFigures
         {
             foreach(ElementaryCell e in mainGrid)
             {
-                e.rect.Visibility = Visibility.Hidden;
-                e.IsFrozen = false;
+                e.Reset();
+            }
+        }
+
+        public void SetNeedsFreeze()
+        {
+            foreach (Tuple<int,int> tp in currentFigureCoordinates)
+            {
+                if (tp.Item2 >= 0)
+                {
+                    mainGrid[tp.Item1, tp.Item2].NeedsFreeze = true;
+                }
+            }
+        }
+
+        public void Freeze()
+        {
+            foreach (ElementaryCell e in mainGrid)
+            {
+                if (e.NeedsFreeze) e.Freeze();
             }
         }
     }
