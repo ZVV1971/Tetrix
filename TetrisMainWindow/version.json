@@ -8,7 +8,6 @@
   "assemblyVersion": {
     "precision": "build"
   },
-  "versionHeightOffset": "20",
   "cloudBuild": {
     "buildNumber": {
       "enabled": true
