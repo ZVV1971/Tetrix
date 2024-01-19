@@ -2,9 +2,9 @@ name: "Workflow for master and release branches"
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request_target:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 env:
   # Path to the solution file relative to the root of the project.
