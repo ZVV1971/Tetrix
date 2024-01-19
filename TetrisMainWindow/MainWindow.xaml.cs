@@ -127,6 +127,7 @@ namespace TetrisMainWindow
 #else
             10;
 #endif
+        #region properties
         //timer for down events
         private DispatcherTimer timer;
         private string _version;
@@ -144,7 +145,7 @@ namespace TetrisMainWindow
         {
             get { return _startButtonText; }
             private set 
-            { 
+            {
                 _startButtonText = value;
                 NotifyPropertyChanged("startButtonText");
             }
@@ -171,7 +172,7 @@ namespace TetrisMainWindow
         {
             get { return _gameStarted; }
             private set 
-            { 
+            {
                 _gameStarted = value;
                 NotifyPropertyChanged("GameStarted");
             }
@@ -212,15 +213,11 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("VersionNumber");
             }
         }
+        #endregion properties
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void NotifyPropertyChanged(string propName)
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propName));
-
-        }
+        private void NotifyPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
 
         /// <summary>
         /// Does preliminary procedures to get the next figure, insert and draw it
@@ -268,7 +265,7 @@ namespace TetrisMainWindow
             //check whether the new postion would touch the upper layer of the pile 
             //or the bottom
             //and return either End of the Play if any of the cells is on the first line
-            //or Frozen otherwise
+            //or NeedsFreeze otherwise
             foreach (Tuple<int, int> t in newPosition)
             {
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
@@ -276,7 +273,7 @@ namespace TetrisMainWindow
                     if (newPosition.Any((x) => x.Item2 <= 0))
                         return MovementOutcomes.EndOfPlay;
                     else
-                        return MovementOutcomes.Frozen;
+                        return MovementOutcomes.NeedsFreeze;
                 }
             }
 
@@ -289,6 +286,7 @@ namespace TetrisMainWindow
         /// </summary>
         /// <param name="c">Is used to take the filling color for rectangles</param>
         /// <param name="newPos">Provides new positions of the figure</param>
+        /// <param name="forced">Forces a figure to be drawn in the current figure position</param>
         private void DrawFigure(TetrisUserControl c, List<Tuple<int, int>> newPos, bool forced = false)
         {
             if (!newPos.Equals(currentFigureCoordinates) || forced)
@@ -501,6 +499,8 @@ namespace TetrisMainWindow
                 HighestScore = Score;
                 TopGamer = _currentGamer;
             }
+
+            timer.Tick -= TimerTickerHandler;
         }
 
         /// <summary>
@@ -603,7 +603,7 @@ namespace TetrisMainWindow
                         //redraw the figure
                         DrawFigure(currentFigure, nextPos);
                         break;
-                    case MovementOutcomes.Frozen:
+                    case MovementOutcomes.NeedsFreeze:
                         //redraw the figure and instantiate a new one
 
                         DrawFigure(currentFigure, nextPos);
@@ -675,7 +675,7 @@ namespace TetrisMainWindow
         [Description("The movement is possible and the game won't be finalized by it")]
         Possible = 1,
         [Description("The movement is possible, but the figure will get frozen by it")]
-        Frozen = 3,
+        NeedsFreeze = 3,
         [Description("The movement is possible, but the figure will get frozen and the gameplay will be finalized by it")]
         EndOfPlay = 4
     }
