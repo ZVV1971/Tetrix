@@ -48,6 +48,8 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
     
     - name: Prepare ZIP Archive
+      #prepare ZIP only after it's pushed to main
+      if: github.event_name = 'push'
       uses: Amadevus/pwsh-script@v2.0.3
       with:
         script: |
