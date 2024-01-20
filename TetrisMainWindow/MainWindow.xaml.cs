@@ -74,6 +74,8 @@ namespace TetrisMainWindow
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             timer = new DispatcherTimer();
+
+            _event_separator = true;
         }
 
         private string _currentGamer;
@@ -109,11 +111,11 @@ namespace TetrisMainWindow
         //number of points added when a row is full
         private int priceOfTheRow = 10;
         //initial timespan in milliseconds between Timer ticks
-        private int _initialTimeSpan =
+        private long _initialTimeSpan =
 #if DEBUG
-            1500;
+            15000000;
 #else
-            1000;
+            10000000;
 #endif
         //percents of the timespan to decrease the intial (previous) one with
         private int _percTimeSpanDecrease =
@@ -132,6 +134,7 @@ namespace TetrisMainWindow
         //timer for down events
         private DispatcherTimer timer;
         private string _version;
+        private bool _event_separator;
 
         public string TopGamer
         {
@@ -270,7 +273,7 @@ namespace TetrisMainWindow
             //check whether the new postion would touch the upper layer of the pile 
             //or the bottom
             //and return either End of the Play if any of the cells is on the first line
-            //or Frozen otherwise
+            //or NeedsFreezing otherwise
             foreach (Tuple<int, int> t in newPosition)
             {
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
@@ -278,7 +281,7 @@ namespace TetrisMainWindow
                     if (newPosition.Any((x) => x.Item2 <= 0))
                         return MovementOutcomes.EndOfPlay;
                     else
-                        return MovementOutcomes.Frozen;
+                        return MovementOutcomes.NeedsFreezing;
                 }
             }
 
@@ -570,7 +573,7 @@ namespace TetrisMainWindow
                 Level++;
                 RowsToFinish = _initialRowsToFinish + Level * 2;
                 timer.Stop();
-                timer.Interval = new TimeSpan(0, 0, 0, 0, ((int)timer.Interval.TotalMilliseconds * (100 - _percTimeSpanDecrease)) / 100);
+                timer.Interval = new TimeSpan(timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
                 timer.Start();
             } 
         }
@@ -605,7 +608,7 @@ namespace TetrisMainWindow
                         //redraw the figure
                         DrawFigure(currentFigure, nextPos);
                         break;
-                    case MovementOutcomes.Frozen:
+                    case MovementOutcomes.NeedsFreezing:
                         //redraw the figure and instantiate a new one
 
                         DrawFigure(currentFigure, nextPos);
@@ -638,7 +641,7 @@ namespace TetrisMainWindow
             highestCell = _gridHeight - 1;
             RowsToFinish = _initialRowsToFinish;
 
-            timer.Interval = new TimeSpan(0, 0, 0, 0, _initialTimeSpan);
+            timer.Interval = new TimeSpan(_initialTimeSpan);
             timer.Tick += TimerTickerHandler;
             timer.Start();
             //Return focus to the main canvas so as to allow it catching keyboard events

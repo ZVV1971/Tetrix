@@ -9,7 +9,7 @@ namespace TetrisFigures.Auxiliary
         [Description("The movement is possible and the game won't be finalized by it")]
         Possible = 1,
         [Description("The movement is possible, but the figure will get frozen by it")]
-        Frozen = 3,
+        NeedsFreezing = 3,
         [Description("The movement is possible, but the figure will get frozen and the gameplay will be finalized by it")]
         EndOfPlay = 4
     }
