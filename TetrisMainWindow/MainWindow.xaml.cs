@@ -670,13 +670,4 @@ namespace TetrisMainWindow
         }
     }
 
-    public enum TetrisColors
-    {
-        Red    = 0,    //Colors.Red,
-        Blue   = 1,    //Colors.Blue,
-        Green  = 2,    //Colors.Green,
-        Yellow = 3,    //Colors.Yellow,
-        Cyan   = 4,    //Colors.Cyan,
-        Brown  = 5,    //Colors.Brown
-    }
 }
