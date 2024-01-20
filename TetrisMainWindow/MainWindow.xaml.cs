@@ -261,19 +261,15 @@ namespace TetrisMainWindow
                 {
                     return MovementOutcomes.Impossible;
                 }
-                //or overlaps the pile
+            //or overlaps the pile
                 if (t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1) && mainGrid[t.Item1, t.Item2].IsFrozen)
                 {
                     return MovementOutcomes.Impossible;
                 }
-            }
-
             //check whether the new postion would touch the upper layer of the pile 
             //or the bottom
             //and return either End of the Play if any of the cells is on the first line
             //or NeedsFreezing otherwise
-            foreach (Tuple<int, int> t in newPosition)
-            {
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
                 {
                     if (newPosition.Any((x) => x.Item2 <= 0))
