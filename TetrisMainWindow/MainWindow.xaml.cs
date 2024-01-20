@@ -343,9 +343,7 @@ namespace TetrisMainWindow
             {
                 for (int j = 0; j < mainGrid.GetLength(1); j++)
                 {
-                    mainGrid[i, j].rect.Fill = new SolidColorBrush(Colors.Transparent);
-                    mainGrid[i, j].rect.Visibility = Visibility.Hidden;
-                    mainGrid[i, j].IsFrozen = false;
+                    mainGrid[i, j].Reset();
                 }
             }
         }
