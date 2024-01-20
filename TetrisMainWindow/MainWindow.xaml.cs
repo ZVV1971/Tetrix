@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -73,7 +74,7 @@ namespace TetrisMainWindow
 
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-            timer = new DispatcherTimer();
+            _timer = new DispatcherTimer();
 
             _event_separator = true;
         }
@@ -110,12 +111,12 @@ namespace TetrisMainWindow
         private int highestCell;
         //number of points added when a row is full
         private int priceOfTheRow = 10;
-        //initial timespan in milliseconds between Timer ticks
+        //initial timespan in Timer ticks
         private long _initialTimeSpan =
 #if DEBUG
-            15000000;
+            7500000;
 #else
-            10000000;
+            5000000;
 #endif
         //percents of the timespan to decrease the intial (previous) one with
         private int _percTimeSpanDecrease =
@@ -131,11 +132,13 @@ namespace TetrisMainWindow
 #else
             10;
 #endif
-        //timer for down events
-        private DispatcherTimer timer;
+        //_timer for down events
+        private DispatcherTimer _timer;
+        //holds the current version of the app
         private string _version;
+        //indicator-switcher to separate even timer events from odd ones
         private bool _event_separator;
-
+        #region Properties
         public string TopGamer
         {
             get { return _topGamer; }
@@ -217,7 +220,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("VersionNumber");
             }
         }
-
+        #endregion
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged(string propName)
@@ -242,7 +245,7 @@ namespace TetrisMainWindow
         /// </summary>
         /// <param name="newPosition">The position that the current figure should take next</param>
         /// <returns></returns>
-        private MovementOutcomes MovementPossible(List<Tuple<int, int>> newPosition)
+        private MovementOutcomes IsMovementPossible(List<Tuple<int, int>> newPosition)
         {
             //if the position remains the same return impossibility of the transformation
             if (newPosition.Equals(currentFigureCoordinates))
@@ -258,13 +261,8 @@ namespace TetrisMainWindow
                 {
                     return MovementOutcomes.Impossible;
                 }
-            }
-
-            //check whether the new position overlaps the pile
-            foreach (Tuple<int, int> t in newPosition)
-            {
-                if (t.Item2 >=0 && t.Item2 <= (_gridHeight - 1))
-                if (mainGrid[t.Item1, t.Item2].IsFrozen)
+                //or overlaps the pile
+                if (t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1) && mainGrid[t.Item1, t.Item2].IsFrozen)
                 {
                     return MovementOutcomes.Impossible;
                 }
@@ -279,9 +277,13 @@ namespace TetrisMainWindow
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
                 {
                     if (newPosition.Any((x) => x.Item2 <= 0))
+                    {
                         return MovementOutcomes.EndOfPlay;
+                    }
                     else
+                    {
                         return MovementOutcomes.NeedsFreezing;
+                    }
                 }
             }
 
@@ -464,7 +466,7 @@ namespace TetrisMainWindow
                         }
                         k += 1;
                     }
-                    while (MovementPossible(newPos) == MovementOutcomes.Possible);
+                    while (IsMovementPossible(newPos) == MovementOutcomes.Possible);
                     break;
                 default:
                     break;
@@ -572,15 +574,23 @@ namespace TetrisMainWindow
                 ClearCellGrid();
                 Level++;
                 RowsToFinish = _initialRowsToFinish + Level * 2;
-                timer.Stop();
-                timer.Interval = new TimeSpan(timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
-                timer.Start();
+                _timer.Stop();
+                _timer.Interval = new TimeSpan(_timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
+                _timer.Start();
             } 
         }
 
         private void TimerTickerHandler(object sender, EventArgs e)
         {
-            ProcessMovement(GetNextFigurePosition());
+            if (_event_separator)
+            {
+                ProcessMovement(GetNextFigurePosition());
+            }
+            else
+            {
+                Debug.WriteLine("Even time-event");
+            }
+            _event_separator = !_event_separator;
         }
 
         private List<Tuple<int, int>> GetNextFigurePosition()
@@ -599,7 +609,7 @@ namespace TetrisMainWindow
             if (nextPos.Count > 0)
             {
                 //Check the possible result of the movement
-                switch (MovementPossible(nextPos))
+                switch (IsMovementPossible(nextPos))
                 {
                     case MovementOutcomes.Impossible:
                         //do nothing
@@ -641,9 +651,9 @@ namespace TetrisMainWindow
             highestCell = _gridHeight - 1;
             RowsToFinish = _initialRowsToFinish;
 
-            timer.Interval = new TimeSpan(_initialTimeSpan);
-            timer.Tick += TimerTickerHandler;
-            timer.Start();
+            _timer.Interval = new TimeSpan(_initialTimeSpan);
+            _timer.Tick += TimerTickerHandler;
+            _timer.Start();
             //Return focus to the main canvas so as to allow it catching keyboard events
             _ = Keyboard.Focus(cellGrid);
         }
