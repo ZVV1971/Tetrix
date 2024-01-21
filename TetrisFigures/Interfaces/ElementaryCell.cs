@@ -24,6 +24,7 @@ namespace TetrisFigures.Interfaces
             IsFrozen = false;
             NeedsFreeze = false;
             rect.Visibility = Visibility.Hidden;
+            rect.Fill = new SolidColorBrush(Colors.Transparent);
         }
     }
 }

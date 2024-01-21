@@ -141,6 +141,14 @@
             <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
                        FontWeight="DemiBold" x:Name="RowsToFinishCell" Text="{Binding RowsToFinish}"/>
         </Grid>
+        <Grid Grid.Column="3" Grid.Row="6" x:Name="SpeedInfo" Visibility="Hidden">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Speed" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+            <TextBlock Grid.Row="1" Text="{Binding Speed}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+        </Grid>
         <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Grid.RowSpan="2" FontSize="84" x:Name="GameOVerBlock"
                    Foreground="Red" FontWeight="Black" VerticalAlignment="Center" HorizontalAlignment="Center" 
                    Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVis}}">
