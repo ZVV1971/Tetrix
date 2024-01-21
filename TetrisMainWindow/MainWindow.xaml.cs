@@ -30,7 +30,6 @@ namespace TetrisMainWindow
             GameStarted = false;
             IsGameOver = false;
             cellSize = 40;
-            priceOfTheRow = 10;
 
             mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
 
@@ -113,18 +112,18 @@ namespace TetrisMainWindow
         //serves to limit the nested cycle
         private int highestCell;
         //number of points added when a row is full
-        private int priceOfTheRow = 10;
+        private readonly int priceOfTheRow = 100;
         //initial timespan in Timer ticks
         private long _initialTimeSpan =
 #if DEBUG
-            3500000;
+            2000000;
 #else
-            3000000;
+            1500000;
 #endif
         //percents of the timespan to decrease the intial (previous) one with
         private int _percTimeSpanDecrease =
 #if DEBUG
-            8;
+            10;
 #else
             15;
 #endif
@@ -145,6 +144,9 @@ namespace TetrisMainWindow
         private readonly int _interlace_factor = 3;
         //indicator that game is will be finished if no rows are removed
         private bool _end_of_the_game_indicator;
+        //holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
+        //the bigger multiplier is applied when the figure freezes
+        private int _height_of_drop = 0;
         #region Properties
         public long Speed => _timer.Interval.Ticks;
         public string TopGamer
@@ -235,7 +237,6 @@ namespace TetrisMainWindow
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(propName));
-
         }
 
         /// <summary>
@@ -335,10 +336,9 @@ namespace TetrisMainWindow
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
 
-            Score += currentFigureCoordinates.Count;
+            Score += currentFigureCoordinates.Count * (1 + _height_of_drop);
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
         }
-
 
         ///<summary>
         ///Set the Needs to Freeze status (depending on the <paramref name="flag"/> value )
@@ -536,6 +536,7 @@ namespace TetrisMainWindow
         private void HideFullRows()
         {
             bool isFull;
+            int fullCounter = 0;
             for (int i = _gridHeight - 1; i >= highestCell; i--)
             {
                 isFull = true;
@@ -579,7 +580,8 @@ namespace TetrisMainWindow
                         }
                     }
 
-                    Score += priceOfTheRow;
+                    //every next level the price of the row grows
+                    Score += (priceOfTheRow + _level) * (1 + fullCounter++);
                     RowsToFinish -= 1;
                     
                     //Need to continue on the same row
@@ -599,7 +601,6 @@ namespace TetrisMainWindow
                 _timer.Start();
             } 
         }
-
 
         /// <summary>
         /// Timer event handler that defines whether to move the figure down
@@ -653,16 +654,19 @@ namespace TetrisMainWindow
                         break;
                     case MovementOutcomes.Possible:
                         //redraw the figure and set OFF necessity to be frozen
+                        _height_of_drop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(false);
                         break;
                     case MovementOutcomes.NeedsFreezing:
-                        //redraw the figure and set OFF necessity to be frozen
+                        //redraw the figure and set ON necessity to be frozen
+                        _height_of_drop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
                         break;
                     case MovementOutcomes.EndOfPlay:
                         //redraw the figure, set needs freezing ON and set indicator EoG
+                        _height_of_drop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
                         _end_of_the_game_indicator = true;
