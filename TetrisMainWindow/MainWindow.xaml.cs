@@ -57,19 +57,19 @@ namespace TetrisMainWindow
                 byte[] data = File.ReadAllBytes(highScoresFileName);
                 try
                 {
-                    highestScores = (Dictionary<string, int>)ObjectSerialize.DeSerialize(data);
-                    int i = highestScores.Max(x => x.Value);
-                    TopGamer = highestScores.First(x => x.Value == i).Key;
+                    highestScores = (List<Tuple<string, int, int, DateTime>>)ObjectSerialize.DeSerialize(data);
+                    int i = highestScores.Max(x => x.Item2);
+                    TopGamer = highestScores.First(x => x.Item2 == i).Item1;
                     HighestScore = i;
                 }
                 catch
                 {
-                    highestScores = new Dictionary<string, int>();
+                    highestScores = new List<Tuple<string, int, int, DateTime>>();
                     HighestScore = 0;
                     TopGamer = "";
                 }
             }
-            else highestScores = new Dictionary<string, int>();
+            else highestScores = new List<Tuple<string, int, int, DateTime>>();
 #if DEBUG
             SpeedInfo.Visibility = Visibility.Visible;
 #endif
@@ -84,7 +84,8 @@ namespace TetrisMainWindow
         private string _currentGamer;
         private string _topGamer;
         private readonly string highScoresFileName = "highscores.scr";
-        private Dictionary<string, int> highestScores;
+        //name, score, level, datetime of the record
+        private List<Tuple<string, int, int, DateTime>> highestScores;
         //the highest score to be shown in the StatusBar
         private int _highScore;
         //the size of cell
@@ -509,17 +510,8 @@ namespace TetrisMainWindow
                     _currentGamer = "Unknown";
             }
 
-            if (highestScores.ContainsKey(_currentGamer.Trim()))
-            {
-                if (Score > highestScores[_currentGamer.Trim()])
-                {
-                    highestScores[_currentGamer.Trim()] = Score;
-                }
-            }
-            else
-            {
-                highestScores.Add(_currentGamer.Trim(), Score);
-            }
+            highestScores.Add(new Tuple<string, int, int, DateTime>(_currentGamer.Trim(), _score, _level, DateTime.Now));
+
 
             if(Score > HighestScore)
             {
@@ -702,9 +694,8 @@ namespace TetrisMainWindow
 
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            List<KeyValuePair<string, int>> l = highestScores.ToList();
-            l.Sort((pair1, pair2) => - pair1.Value.CompareTo(pair2.Value));
-            HighScoresDialog hs = new HighScoresDialog(l);
+            highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
+            HighScoresDialog hs = new HighScoresDialog(highestScores.Take(10).ToList());
             _ = hs.ShowDialog();
         }
 
@@ -712,14 +703,9 @@ namespace TetrisMainWindow
         {
             using (FileStream fs = new FileStream(highScoresFileName, FileMode.OpenOrCreate))
             {
-                List<KeyValuePair<string, int>> l = highestScores.ToList();
-                l.Sort((pair1, pair2) => - pair1.Value.CompareTo(pair2.Value));
-                Dictionary<string, int> d = new Dictionary<string, int>(10);
-                //serialize to binary
-                foreach (KeyValuePair<string, int> k in l.Take(10))
-                    d.Add(k.Key, k.Value);
-                
-                byte[] data = ObjectSerialize.Serialize(d);
+
+                highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
+                byte[] data = ObjectSerialize.Serialize(highestScores.Take(10).ToList());
                 fs.Write(data, 0, data.Length);
             }
         }
