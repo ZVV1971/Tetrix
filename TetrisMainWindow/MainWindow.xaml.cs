@@ -71,12 +71,15 @@ namespace TetrisMainWindow
                 }
             }
             else highestScores = new Dictionary<string, int>();
+#if DEBUG
+            SpeedInfo.Visibility = Visibility.Visible;
+#endif
 
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             _timer = new DispatcherTimer();
 
-            _event_separator = true;
+            _event_interlacer = 0;
         }
 
         private string _currentGamer;
@@ -114,9 +117,9 @@ namespace TetrisMainWindow
         //initial timespan in Timer ticks
         private long _initialTimeSpan =
 #if DEBUG
-            7500000;
+            3500000;
 #else
-            5000000;
+            3000000;
 #endif
         //percents of the timespan to decrease the intial (previous) one with
         private int _percTimeSpanDecrease =
@@ -136,9 +139,14 @@ namespace TetrisMainWindow
         private DispatcherTimer _timer;
         //holds the current version of the app
         private string _version;
-        //indicator-switcher to separate even timer events from odd ones
-        private bool _event_separator;
+        //indicator-switcher to let freezing timer events from moving ones
+        private long _event_interlacer;
+        //the ration of moving event to freezing ones
+        private readonly int _interlace_factor = 3;
+        //indicator that game is will be finished if no rows are removed
+        private bool _end_of_the_game_indicator;
         #region Properties
+        public long Speed => _timer.Interval.Ticks;
         public string TopGamer
         {
             get { return _topGamer; }
@@ -151,8 +159,8 @@ namespace TetrisMainWindow
         public string startButtonText
         {
             get { return _startButtonText; }
-            private set 
-            { 
+            private set
+            {
                 _startButtonText = value;
                 NotifyPropertyChanged("startButtonText");
             }
@@ -255,17 +263,14 @@ namespace TetrisMainWindow
 
             //check whether the new position comes outside the playground borders
             //left, right sides and bottom
+            //or overlaps the pile
+            if (newPosition.Where(x => x.Item2 >= 0).Any(y => y.Item1 < 0 || y.Item1 > (_gridWidth - 1) || y.Item2 > (_gridHeight - 1) || mainGrid[y.Item1, y.Item2].IsFrozen))
+            {
+                return MovementOutcomes.Impossible;
+            }
+
             foreach (Tuple<int, int> t in newPosition) 
             {
-                if (t.Item1 < 0 || t.Item1 > (_gridWidth - 1) || t.Item2 > (_gridHeight - 1))
-                {
-                    return MovementOutcomes.Impossible;
-                }
-            //or overlaps the pile
-                if (t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1) && mainGrid[t.Item1, t.Item2].IsFrozen)
-                {
-                    return MovementOutcomes.Impossible;
-                }
             //check whether the new postion would touch the upper layer of the pile 
             //or the bottom
             //and return either End of the Play if any of the cells is on the first line
@@ -332,6 +337,20 @@ namespace TetrisMainWindow
 
             Score += currentFigureCoordinates.Count;
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
+        }
+
+
+        ///<summary>
+        ///Set the Needs to Freeze status (depending on the <paramref name="flag"/> value )
+        ///for those cell in the elementary cell grid that correspond to the current figure coordinates.
+        ///</summary>
+        private void SetNeedsFreezing(bool flag)
+        {
+            foreach(Tuple<int,int> t in currentFigureCoordinates)
+            {
+                if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
+                    mainGrid[t.Item1, t.Item2].NeedsFreeze = flag;
+            }
         }
 
         /// <summary>
@@ -418,9 +437,11 @@ namespace TetrisMainWindow
             return fig;
         }
 
+        ///<summary>
+        ///Sets focus on the main canvas so as to enable it to catch keyboard pressing
+        ///</summary>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //Set focus on the main canvas so as to enable it to catch keyboard pressing
             Keyboard.Focus(cellGrid);
         }
 
@@ -469,6 +490,9 @@ namespace TetrisMainWindow
             ProcessMovement(newPos);
         }
 
+        /// <summary>
+        /// Settles all necessary stuff before the game is finished and right after it is
+        /// </summary>
         private void EndOfTheGame()
         {
             GameStarted = false;
@@ -535,7 +559,8 @@ namespace TetrisMainWindow
                         mainGrid[j, i].rect.Visibility = Visibility.Hidden;
                         mainGrid[j, i].IsFrozen = false;
                     }
-
+                    //since even one removed row is enough to continue the game -- unset the EoG indicator
+                    _end_of_the_game_indicator = false;
 
                     for (int k = i; k >= highestCell; k--)
                     {
@@ -570,21 +595,39 @@ namespace TetrisMainWindow
                 RowsToFinish = _initialRowsToFinish + Level * 2;
                 _timer.Stop();
                 _timer.Interval = new TimeSpan(_timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
+                NotifyPropertyChanged("Speed");
                 _timer.Start();
             } 
         }
 
+
+        /// <summary>
+        /// Timer event handler that defines whether to move the figure down
+        /// or to process cells that need to be frozen
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void TimerTickerHandler(object sender, EventArgs e)
         {
-            if (_event_separator)
+            if (_event_interlacer++ % _interlace_factor == 0)
             {
                 ProcessMovement(GetNextFigurePosition());
             }
             else
             {
-                Debug.WriteLine("Even time-event");
+                DoFreezing();
             }
-            _event_separator = !_event_separator;
+        }
+
+        private void DoFreezing()
+        {
+            if (currentFigureCoordinates.Any(x => x.Item2 > 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
+            {
+                FreezeCurrentFigure();
+                HideFullRows();
+                if (_end_of_the_game_indicator) EndOfTheGame();
+                DoNextFigure();
+            }
         }
 
         private List<Tuple<int, int>> GetNextFigurePosition()
@@ -609,22 +652,20 @@ namespace TetrisMainWindow
                         //do nothing
                         break;
                     case MovementOutcomes.Possible:
-                        //redraw the figure
+                        //redraw the figure and set OFF necessity to be frozen
                         DrawFigure(currentFigure, nextPos);
+                        SetNeedsFreezing(false);
                         break;
                     case MovementOutcomes.NeedsFreezing:
-                        //redraw the figure and instantiate a new one
-
+                        //redraw the figure and set OFF necessity to be frozen
                         DrawFigure(currentFigure, nextPos);
-                        FreezeCurrentFigure();
-                        HideFullRows();
-                        DoNextFigure();
+                        SetNeedsFreezing(true);
                         break;
                     case MovementOutcomes.EndOfPlay:
-                        //redraw the figure and fire end of the gave event
+                        //redraw the figure, set needs freezing ON and set indicator EoG
                         DrawFigure(currentFigure, nextPos);
-                        FreezeCurrentFigure();
-                        EndOfTheGame();
+                        SetNeedsFreezing(true);
+                        _end_of_the_game_indicator = true;
                         break;
                 }
             }
@@ -644,10 +685,13 @@ namespace TetrisMainWindow
             Score = 0;
             highestCell = _gridHeight - 1;
             RowsToFinish = _initialRowsToFinish;
-
+            _end_of_the_game_indicator = false;
+            _event_interlacer = 0;
             _timer.Interval = new TimeSpan(_initialTimeSpan);
             _timer.Tick += TimerTickerHandler;
+            NotifyPropertyChanged("Speed");
             _timer.Start();
+
             //Return focus to the main canvas so as to allow it catching keyboard events
             _ = Keyboard.Focus(cellGrid);
         }
@@ -676,5 +720,4 @@ namespace TetrisMainWindow
             }
         }
     }
-
 }
