@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -7,33 +6,33 @@ namespace TetrisFigures.Helper
 {
     public static class ObjectSerialize
     {
-        public static byte[] Serialize(this Object obj)
+        public static byte[] Serialize(this object obj)
         {
             if (obj == null)
             {
                 return null;
             }
 
-            using (var memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                var binaryFormatter = new BinaryFormatter();
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
 
                 binaryFormatter.Serialize(memoryStream, obj);
 
-                var compressed = Compress(memoryStream.ToArray());
+                byte[] compressed = Compress(memoryStream.ToArray());
                 return compressed;
             }
         }
 
-        public static Object DeSerialize(this byte[] arrBytes)
+        public static object DeSerialize(this byte[] arrBytes)
         {
-            using (var memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                var binaryFormatter = new BinaryFormatter();
-                var decompressed = Decompress(arrBytes);
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                byte[] decompressed = Decompress(arrBytes);
 
                 memoryStream.Write(decompressed, 0, decompressed.Length);
-                memoryStream.Seek(0, SeekOrigin.Begin);
+                _ = memoryStream.Seek(0, SeekOrigin.Begin);
 
                 return binaryFormatter.Deserialize(memoryStream);
             }
@@ -43,9 +42,9 @@ namespace TetrisFigures.Helper
         {
             byte[] compressesData;
 
-            using (var outputStream = new MemoryStream())
+            using (MemoryStream outputStream = new MemoryStream())
             {
-                using (var zip = new GZipStream(outputStream, CompressionMode.Compress))
+                using (GZipStream zip = new GZipStream(outputStream, CompressionMode.Compress))
                 {
                     zip.Write(input, 0, input.Length);
                 }
@@ -60,11 +59,11 @@ namespace TetrisFigures.Helper
         {
             byte[] decompressedData;
 
-            using (var outputStream = new MemoryStream())
+            using (MemoryStream outputStream = new MemoryStream())
             {
-                using (var inputStream = new MemoryStream(input))
+                using (MemoryStream inputStream = new MemoryStream(input))
                 {
-                    using (var zip = new GZipStream(inputStream, CompressionMode.Decompress))
+                    using (GZipStream zip = new GZipStream(inputStream, CompressionMode.Decompress))
                     {
                         zip.CopyTo(outputStream);
                     }
