@@ -12,7 +12,7 @@ namespace TetrisFigures.Auxiliary
             _topmost = depth;
         }
 
-        public void AddFigure(List<Tuple<int, int>> coordinates)
+        public void AddFigure(IEnumerable<Tuple<int, int>> coordinates)
         {
             foreach (Tuple<int, int> t in coordinates)
             {

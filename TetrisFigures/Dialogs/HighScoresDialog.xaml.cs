@@ -10,7 +10,7 @@ namespace TetrisFigures.Dialogs
     /// </summary>
     public partial class HighScoresDialog : Window
     {
-        public HighScoresDialog(List<Tuple<string, int, int, DateTime>> l)
+        public HighScoresDialog(IEnumerable<Tuple<string, int, int, DateTime>> l)
         {
             InitializeComponent();
             DataContext = this;
