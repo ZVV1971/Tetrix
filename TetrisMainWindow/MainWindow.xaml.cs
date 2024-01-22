@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,6 +31,8 @@ namespace TetrisMainWindow
             cellSize = 40;
 
             mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
+
+            _rowTracker = new RowTracker(_gridHeight, _gridWidth);
 
             for (int i = 0; i < mainGrid.GetLength(0); i++)
             {
@@ -148,6 +149,8 @@ namespace TetrisMainWindow
         //holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
         //the bigger multiplier is applied when the figure freezes
         private int _height_of_drop = 0;
+        //an helper object to facilitate by hinding of rows
+        private RowTracker _rowTracker;
         #region Properties
         public long Speed => _timer.Interval.Ticks;
         public string TopGamer
@@ -336,7 +339,7 @@ namespace TetrisMainWindow
                 if (t.Item1 >=0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >=0 && t.Item2 <= (_gridHeight - 1))
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
-
+            _rowTracker.AddFigure(currentFigureCoordinates);
             Score += currentFigureCoordinates.Count * (1 + _height_of_drop);
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
         }
@@ -527,71 +530,66 @@ namespace TetrisMainWindow
         /// </summary>
         private void HideFullRows()
         {
-            bool isFull;
-            int fullCounter = 0;
-            for (int i = _gridHeight - 1; i >= highestCell; i--)
+
+            List<int> full_rows_list = new List<int>(_rowTracker.GetFullRows());
+            if (full_rows_list.Count == 0) return;
+            int k = full_rows_list.First();
+            int l = k - 1; //starting from the row next to the full one
+
+            for (; k >= highestCell; k--, l--)
             {
-                isFull = true;
-                //Check if all the cells in the current row are frozen
-                for (int j = _gridWidth - 1; j >= 0; j--)
-                {
-                    if (!mainGrid[j, i].IsFrozen)
-                    {
-                        isFull = false;
-                        break;
-                    }
-                }
-
-                //If the current row is full
-                if (isFull)
-                {
-                    //remove the current row from the grid
-                    for (int j = _gridWidth - 1; j >= 0; j--)
-                    {
-                        mainGrid[j, i].rect.Fill = new SolidColorBrush(Colors.Transparent);
-                        mainGrid[j, i].rect.Visibility = Visibility.Hidden;
-                        mainGrid[j, i].IsFrozen = false;
-                    }
-                    //since even one removed row is enough to continue the game -- unset the EoG indicator
-                    _end_of_the_game_indicator = false;
-
-                    for (int k = i; k >= highestCell; k--)
-                    {
-                        for (int m = 0; m <= _gridWidth - 1; m++)
-                        {
-                            if (mainGrid[m, k - 1].IsFrozen)
-                            {
-                                mainGrid[m, k].rect.Fill = mainGrid[m, k - 1].rect.Fill;
-                                mainGrid[m, k].rect.Visibility = Visibility.Visible;
-                                mainGrid[m, k].IsFrozen = true;
-
-                                mainGrid[m, k - 1].rect.Fill = new SolidColorBrush(Colors.Transparent);
-                                mainGrid[m, k - 1].rect.Visibility = Visibility.Hidden;
-                                mainGrid[m, k - 1].IsFrozen = false;
-                            }
-                        }
-                    }
-
-                    //every next level the price of the row grows
-                    Score += (priceOfTheRow + _level) * (1 + fullCounter++);
-                    RowsToFinish -= 1;
-                    
-                    //Need to continue on the same row
-                    i += 1;
-                    //Correct the highest cell indicator
-                    highestCell += 1;
-                }
+                while (full_rows_list.Contains(l)) l--;
+                handleGridRows(k, l);
             }
+
+            highestCell = _rowTracker.Topmost;
+            RowsToFinish -= full_rows_list.Count;
+            Score += (int)(priceOfTheRow * (1 + 0.1*_level)) * Enumerable.Range(1, full_rows_list.Count).Sum();
+
             if (RowsToFinish <= 0)
             {
                 ClearCellGrid();
                 Level++;
                 RowsToFinish = _initialRowsToFinish + Level * 2;
+                _rowTracker.Clear();
                 _timer.Stop();
                 _timer.Interval = new TimeSpan(_timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
                 NotifyPropertyChanged("Speed");
                 _timer.Start();
-            } 
+            }
+            else
+            {
+                _rowTracker.RemoveFullRows();
+            }
+        }
+
+
+        /// <summary>
+        /// Cleans up the destination row <paramref name="dest_row"/> and if the source row <paramref name="source_row"/> argument is greater than the highest cell
+        /// copies cell attributes correspondingly.
+        /// No additional cleansing of the source row is done.
+        /// </summary>
+        private void handleGridRows(int dest_row, int source_row)
+        {
+            //Reset the destination row
+            for (int i = 0; i <= _gridWidth - 1; i++)
+            {
+                mainGrid[i, dest_row].Reset();
+            }
+
+            //Copy the source row into the destination one if the source is not NULL
+            if(source_row > highestCell)
+            {
+                for (int i = 0; i <= _gridWidth - 1; i++)
+                {
+                    if (mainGrid[i, source_row].IsFrozen)
+                    {
+                        mainGrid[i, dest_row].rect.Fill = mainGrid[i, source_row].rect.Fill;
+                        mainGrid[i, dest_row].rect.Visibility = Visibility.Visible;
+                        mainGrid[i, dest_row].IsFrozen = true;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -686,6 +684,7 @@ namespace TetrisMainWindow
             _timer.Interval = new TimeSpan(_initialTimeSpan);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
+            _rowTracker.Clear();
             _timer.Start();
 
             //Return focus to the main canvas so as to allow it catching keyboard events
