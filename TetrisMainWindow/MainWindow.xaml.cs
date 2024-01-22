@@ -695,7 +695,7 @@ namespace TetrisMainWindow
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
-            HighScoresDialog hs = new HighScoresDialog(highestScores.Take(10).ToList());
+            HighScoresDialog hs = new HighScoresDialog(highestScores.Take(10));
             _ = hs.ShowDialog();
         }
 
