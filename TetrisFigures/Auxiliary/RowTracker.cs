@@ -36,6 +36,9 @@ namespace TetrisFigures.Auxiliary
             }
         }
 
+        /// <summary>
+        /// Resets the counters
+        /// </summary>
         public void Clear()
         {
             _topmost = _counters.Length;
@@ -45,6 +48,9 @@ namespace TetrisFigures.Auxiliary
             }
         }
 
+        /// <summary>
+        /// Tidies up in the counter
+        /// </summary>
         public void RemoveFullRows()
         {
             int j = _counters.Length - 1;
