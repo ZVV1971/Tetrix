@@ -151,6 +151,9 @@ namespace TetrisMainWindow
         private int _height_of_drop = 0;
         //an helper object to facilitate by hinding of rows
         private RowTracker _rowTracker;
+        //a flag for timer initiated movement event that may follow manual drops
+        private static bool _dropped;
+        private readonly object balanceLock = new object();
         #region Properties
         public long Speed => _timer.Interval.Ticks;
         public string TopGamer
@@ -260,12 +263,6 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private MovementOutcomes IsMovementPossible(List<Tuple<int, int>> newPosition)
         {
-            //if the position remains the same return impossibility of the transformation
-            if (newPosition.Equals(currentFigureCoordinates))
-            {
-                return MovementOutcomes.Impossible;
-            }
-
             //check whether the new position comes outside the playground borders
             //left, right sides and bottom
             //or overlaps the pile
@@ -274,7 +271,7 @@ namespace TetrisMainWindow
                 return MovementOutcomes.Impossible;
             }
 
-            foreach (Tuple<int, int> t in newPosition) 
+            foreach (Tuple<int, int> t in newPosition)
             {
             //check whether the new postion would touch the upper layer of the pile 
             //or the bottom
@@ -340,7 +337,7 @@ namespace TetrisMainWindow
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
             _rowTracker.AddFigure(currentFigureCoordinates);
-            Score += currentFigureCoordinates.Count * (1 + _height_of_drop);
+            Score += currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
         }
 
@@ -475,6 +472,10 @@ namespace TetrisMainWindow
                     }
                     break;
                 case Key.Space:
+                    lock (balanceLock)
+                    {
+                        _dropped = true;
+                    }
                     int k = 1;
                     do
                     {
@@ -499,13 +500,15 @@ namespace TetrisMainWindow
         /// </summary>
         private void EndOfTheGame()
         {
+            _timer.Stop();
+
             GameStarted = false;
             IsGameOver = true;
             if (_currentGamer is null || _currentGamer.Equals(string.Empty))
             {
                 GamerNameDialog inputDialog = new GamerNameDialog("Enter the name of the current gamer", "Unknown");
                 if (inputDialog.ShowDialog() == true)
-                    if (!(inputDialog.Answer.Trim()).Equals(string.Empty))
+                    if (!inputDialog.Answer.Trim().Equals(string.Empty))
                         _currentGamer = inputDialog.Answer;
                     else
                         _currentGamer = "Unknown";
@@ -514,7 +517,6 @@ namespace TetrisMainWindow
             }
 
             highestScores.Add(new Tuple<string, int, int, DateTime>(_currentGamer.Trim(), _score, _level, DateTime.Now));
-
 
             if(Score > HighestScore)
             {
@@ -539,7 +541,7 @@ namespace TetrisMainWindow
             for (; k >= highestCell; k--, l--)
             {
                 while (full_rows_list.Contains(l)) l--;
-                handleGridRows(k, l);
+                HandleGridRows(k, l);
             }
 
             highestCell = _rowTracker.Topmost;
@@ -563,13 +565,12 @@ namespace TetrisMainWindow
             }
         }
 
-
         /// <summary>
         /// Cleans up the destination row <paramref name="dest_row"/> and if the source row <paramref name="source_row"/> argument is greater than the highest cell
         /// copies cell attributes correspondingly.
         /// No additional cleansing of the source row is done.
         /// </summary>
-        private void handleGridRows(int dest_row, int source_row)
+        private void HandleGridRows(int dest_row, int source_row)
         {
             //Reset the destination row
             for (int i = 0; i <= _gridWidth - 1; i++)
@@ -602,11 +603,22 @@ namespace TetrisMainWindow
         {
             if (_event_interlacer++ % _interlace_factor == 0)
             {
+                lock (balanceLock)
+                {
+                    if (_dropped)
+                    {
+                        return;
+                    }
+                }
                 ProcessMovement(GetNextFigurePosition());
             }
             else
             {
                 DoFreezing();
+                lock (balanceLock)
+                {
+                    _dropped = false;
+                }
             }
         }
 
@@ -616,7 +628,11 @@ namespace TetrisMainWindow
             {
                 FreezeCurrentFigure();
                 HideFullRows();
-                if (_end_of_the_game_indicator) EndOfTheGame();
+                if (_end_of_the_game_indicator)
+                {
+                    EndOfTheGame();
+                    return;
+                }
                 DoNextFigure();
             }
         }
@@ -660,6 +676,10 @@ namespace TetrisMainWindow
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
                         _end_of_the_game_indicator = true;
+                        lock (balanceLock)
+                        {
+                            _dropped = true;
+                        }
                         break;
                 }
             }
@@ -684,6 +704,10 @@ namespace TetrisMainWindow
             _timer.Interval = new TimeSpan(_initialTimeSpan);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
+            lock (balanceLock)
+            {
+                _dropped = false;
+            }
             _rowTracker.Clear();
             _timer.Start();
 
