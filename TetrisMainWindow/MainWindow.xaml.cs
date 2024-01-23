@@ -254,6 +254,12 @@ namespace TetrisMainWindow
             GetNextFigure();
             InsertNewFigure(currentFigure);
             DrawFigure(currentFigure, currentFigureCoordinates, true);
+
+            if (IsMovementPossible(currentFigureCoordinates) == MovementOutcomes.EndOfPlay)
+            {
+                SetNeedsFreezing(true);
+                _end_of_the_game_indicator = true;
+            }
         }
 
         /// <summary>
@@ -350,7 +356,9 @@ namespace TetrisMainWindow
             foreach(Tuple<int,int> t in currentFigureCoordinates)
             {
                 if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
+                {
                     mainGrid[t.Item1, t.Item2].NeedsFreeze = flag;
+                }
             }
         }
 
@@ -624,7 +632,7 @@ namespace TetrisMainWindow
 
         private void DoFreezing()
         {
-            if (currentFigureCoordinates.Any(x => x.Item2 > 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
+            if (currentFigureCoordinates.Any(x => x.Item2 >= 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
             {
                 FreezeCurrentFigure();
                 HideFullRows();
