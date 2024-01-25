@@ -153,6 +153,8 @@ namespace TetrisMainWindow
         private RowTracker _rowTracker;
         //a flag for timer initiated movement event that may follow manual drops
         private static bool _dropped;
+        //contains additonal information about the changes in the score
+        private string _add_scoring_info;
         private readonly object balanceLock = new object();
         #region Properties
         public long Speed => _timer.Interval.Ticks;
@@ -235,6 +237,15 @@ namespace TetrisMainWindow
             {
                 _version = value;
                 NotifyPropertyChanged("VersionNumber");
+            }
+        }
+        public string AdditionalScoringInfo 
+        {
+            get { return _add_scoring_info; }
+            private set
+            {
+                _add_scoring_info = value;
+                NotifyPropertyChanged("AdditionalScoringInfo");
             }
         }
         #endregion
@@ -343,8 +354,29 @@ namespace TetrisMainWindow
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
             _rowTracker.AddFigure(currentFigureCoordinates);
-            Score += currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
+            int j = currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
+            Score += j;
+            AdditionalScoringInfo = $"{currentFigure.GetType().Name.Replace("Tetris","").Replace("Control","")} has been dropped from {_height_of_drop} cells and gave you {j} points.";
+            lblAdditionalScoringInfo.Visibility = Visibility.Visible;
+            FireInfo();
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
+        }
+
+        private void FireInfo()
+        {
+            DispatcherTimer tmr = new DispatcherTimer
+            {
+                //Set the timer interval to the length of the animation.
+                Interval = new TimeSpan(0, 0, 1)
+            };
+            tmr.Tick += delegate (object snd, EventArgs ea)
+            {
+                // The animation will be over now, collapse the label.
+                lblAdditionalScoringInfo.Visibility = Visibility.Collapsed;
+                // Get rid of the timer.
+                ((DispatcherTimer)snd).Stop();
+            };
+            tmr.Start();
         }
 
         ///<summary>
@@ -554,7 +586,11 @@ namespace TetrisMainWindow
 
             highestCell = _rowTracker.Topmost;
             RowsToFinish -= full_rows_list.Count;
-            Score += (int)(priceOfTheRow * (1 + 0.1*_level)) * Enumerable.Range(1, full_rows_list.Count).Sum();
+            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, full_rows_list.Count).Sum();
+            Score += j;
+            AdditionalScoringInfo = $"{full_rows_list.Count} rows completed; {j} points gained.";
+
+            FireInfo();
 
             if (RowsToFinish <= 0)
             {
