@@ -32,7 +32,7 @@ namespace TetrisMainWindow
 
             mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
 
-            _rowTracker = new RowTracker(_gridHeight, _gridWidth);
+            _full_rows_list = new List<int>();
 
             for (int i = 0; i < mainGrid.GetLength(0); i++)
             {
@@ -149,8 +149,8 @@ namespace TetrisMainWindow
         //holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
         //the bigger multiplier is applied when the figure freezes
         private int _height_of_drop = 0;
-        //an helper object to facilitate by hinding of rows
-        private RowTracker _rowTracker;
+        //keeps full rows
+        private List<int> _full_rows_list;
         //a flag for timer initiated movement event that may follow manual drops
         private static bool _dropped;
         //contains additonal information about the changes in the score
@@ -353,7 +353,17 @@ namespace TetrisMainWindow
                 if (t.Item1 >=0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >=0 && t.Item2 <= (_gridHeight - 1))
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
-            _rowTracker.AddFigure(currentFigureCoordinates);
+
+            foreach (int i in currentFigureCoordinates.Select(x => x.Item2).Distinct().OrderBy(y => y))
+            {
+                int l = 0;
+                for (int k = 0; k < _gridWidth; k++)
+                {
+                    if (mainGrid[k, i].IsFrozen) l++;
+                }
+                if (l == _gridWidth) _full_rows_list.Add(i);
+            }
+
             int j = currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
             Score += j;
             AdditionalScoringInfo = $"{currentFigure.GetType().Name.Replace("Tetris","").Replace("Control","")} has been dropped from {_height_of_drop} cells and gave you {j} points.";
@@ -572,24 +582,21 @@ namespace TetrisMainWindow
         /// </summary>
         private void HideFullRows()
         {
-
-            List<int> full_rows_list = new List<int>(_rowTracker.GetFullRows());
-            if (full_rows_list.Count == 0) return;
-            int k = full_rows_list.First();
+            int k = _full_rows_list.Last();
             int l = k - 1; //starting from the row next to the full one
-
+            
             for (; k >= highestCell; k--, l--)
             {
-                while (full_rows_list.Contains(l)) l--;
+                while (_full_rows_list.Contains(l)) l--;
                 HandleGridRows(k, l);
             }
 
-            highestCell = _rowTracker.Topmost;
-            RowsToFinish -= full_rows_list.Count;
-            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, full_rows_list.Count).Sum();
+            highestCell += _full_rows_list.Count;
+            RowsToFinish -= _full_rows_list.Count;
+            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, _full_rows_list.Count).Sum();
             Score += j;
-            AdditionalScoringInfo = $"{full_rows_list.Count} rows completed; {j} points gained.";
-
+            AdditionalScoringInfo = $"{_full_rows_list.Count} rows completed; {j} points gained.";
+            _full_rows_list.Clear();
             FireInfo();
 
             if (RowsToFinish <= 0)
@@ -597,15 +604,11 @@ namespace TetrisMainWindow
                 ClearCellGrid();
                 Level++;
                 RowsToFinish = _initialRowsToFinish + Level * 2;
-                _rowTracker.Clear();
+                highestCell = _gridHeight - 1;
                 _timer.Stop();
                 _timer.Interval = new TimeSpan(_timer.Interval.Ticks * (100 - _percTimeSpanDecrease) / 100);
                 NotifyPropertyChanged("Speed");
                 _timer.Start();
-            }
-            else
-            {
-                _rowTracker.RemoveFullRows();
             }
         }
 
@@ -671,7 +674,7 @@ namespace TetrisMainWindow
             if (currentFigureCoordinates.Any(x => x.Item2 >= 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
             {
                 FreezeCurrentFigure();
-                HideFullRows();
+                if (_full_rows_list.Count > 0) HideFullRows();
                 if (_end_of_the_game_indicator)
                 {
                     EndOfTheGame();
@@ -752,7 +755,7 @@ namespace TetrisMainWindow
             {
                 _dropped = false;
             }
-            _rowTracker.Clear();
+            _full_rows_list.Clear();
             _timer.Start();
 
             //Return focus to the main canvas so as to allow it catching keyboard events
