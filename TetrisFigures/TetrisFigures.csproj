@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auxiliary\Enums.cs" />
-    <Compile Include="Auxiliary\RowFullEventClass.cs" />
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Dialogs\GamerNameDialog.xaml.cs">
       <DependentUpon>GamerNameDialog.xaml</DependentUpon>
