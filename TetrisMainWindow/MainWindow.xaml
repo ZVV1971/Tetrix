@@ -31,7 +31,7 @@
             <ColumnDefinition x:Name="InfoColumn" MinWidth="200"/>
             <ColumnDefinition Width="*" x:Name="RightColumn"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown">
+        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -97,6 +97,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
         </Grid>
+        <Canvas Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1">
+            
+        </Canvas>
         <TextBlock Grid.Column="3" Grid.Row="8" x:Name="StartButton" FontSize="28" FontFamily="Arial" FontWeight="Black" Focusable="False"
                    Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"
                    VerticalAlignment="Center" HorizontalAlignment="Center">
