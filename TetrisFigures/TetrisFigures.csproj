@@ -51,6 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auxiliary\Enums.cs" />
+    <Compile Include="Auxiliary\ScoreInfoControl.xaml.cs">
+      <DependentUpon>ScoreInfoControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Dialogs\GamerNameDialog.xaml.cs">
       <DependentUpon>GamerNameDialog.xaml</DependentUpon>
@@ -87,6 +90,10 @@
     <Compile Include="TetrisStickControl.xaml.cs">
       <DependentUpon>TetrisStickControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="Auxiliary\ScoreInfoControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Dialogs\GamerNameDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
