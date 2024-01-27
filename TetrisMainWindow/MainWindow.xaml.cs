@@ -88,11 +88,6 @@ namespace TetrisMainWindow
                 .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
                 .Select(x => x.FullName + ", TetrisFigures")
                 .ToArray();
-            _hoaring = new DispatcherTimer()
-            {
-                Interval = TimeSpan.FromMilliseconds(100)
-            };
-            _hoaring.Start();
         }
 
         private double _cellSizeForCanvas;
@@ -152,8 +147,6 @@ namespace TetrisMainWindow
 #endif
         //_timer for down events
         private DispatcherTimer _timer;
-        //timer for hoaring popups' movements
-        private readonly DispatcherTimer _hoaring;
         //holds the current version of the app
         private string _version;
         //indicator-switcher to let differentiate freezing timer events from moving ones
@@ -403,7 +396,12 @@ namespace TetrisMainWindow
             Canvas.SetTop(sc, top);
             sc.visibility = Visibility.Visible;
 
-            _hoaring.Tick += delegate (object snd, EventArgs eargs)
+            DispatcherTimer hoaring = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+
+            hoaring.Tick += delegate (object snd, EventArgs eargs)
             {
                 Canvas.SetTop(sc, top - 10 * sc.movementCounter++);
             };
@@ -420,7 +418,7 @@ namespace TetrisMainWindow
                 // Get rid of the timer.
                 ((DispatcherTimer)snd).Stop();
             };
-
+            hoaring.Start();
             tmr.Start();
         }
 
