@@ -90,6 +90,7 @@ namespace TetrisMainWindow
                 .ToArray();
         }
 
+        private double _cellSizeForCanvas;
         private string _currentGamer;
         private string _topGamer;
         private readonly string highScoresFileName = "highscores.scr";
@@ -376,10 +377,38 @@ namespace TetrisMainWindow
 
             int j = currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
             Score += j;
-            AdditionalScoringInfo = $"{currentFigure.GetType().Name.Replace("Tetris","").Replace("Control","")} has been dropped from {_height_of_drop} cells and gave you {j} points.";
-            lblAdditionalScoringInfo.Visibility = Visibility.Visible;
-            FireInfo();
+            ShowPopup((currentFigureCoordinates.Max(x => x.Item1) + currentFigureCoordinates.Min(x => x.Item1)) * _cellSizeForCanvas / 2, (currentFigureCoordinates.Min(x => x.Item2) - 1) * _cellSizeForCanvas, $"{1 + Math.Max(_height_of_drop - 1, 0)}*{currentFigureCoordinates.Count}={j}");
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
+        }
+
+        /// <summary>
+        /// Shows scoring <paramref name="message"/> on the canvas on the top of the cell grid
+        /// at the specified <paramref name="left"/> & <paramref name="top"/> position
+        /// </summary>
+        private void ShowPopup(double left, double top, string message)
+        {
+            ScoreInfoControl sc = new ScoreInfoControl
+            {
+                txtScoreInfo = message
+            };
+            int pos = cnvInformation.Children.Add(sc);
+            Canvas.SetLeft(sc, left);
+            Canvas.SetTop(sc, top);
+            sc.visibility = Visibility.Visible;
+
+            DispatcherTimer tmr = new DispatcherTimer
+            {
+                //Set the timer interval to the length of the animation.
+                Interval = new TimeSpan(0, 0, 4)
+            };
+            tmr.Tick += delegate (object snd, EventArgs ea)
+            {
+                // The animation will be over now, remove the popup
+                cnvInformation.Children.Remove(sc);
+                // Get rid of the timer.
+                ((DispatcherTimer)snd).Stop();
+            };
+            tmr.Start();
         }
 
         private void FireInfo()
@@ -598,6 +627,7 @@ namespace TetrisMainWindow
             Score += j;
             AdditionalScoringInfo = $"{_full_rows_list.Count} rows completed; {j} points gained.";
             _full_rows_list.Clear();
+            lblAdditionalScoringInfo.Visibility = Visibility.Visible;
             FireInfo();
 
             if (RowsToFinish <= 0)
@@ -739,7 +769,7 @@ namespace TetrisMainWindow
             IsGameOver = false;
             ClearCellGrid();
             DoNextFigure();
-
+            _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
             //Start the game
             GameStarted = true;
             startButtonText = "Restart";
