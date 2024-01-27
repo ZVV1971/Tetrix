@@ -80,6 +80,14 @@ namespace TetrisMainWindow
             _timer = new DispatcherTimer();
 
             _event_interlacer = 0;
+
+            Type t = typeof(TetrisUserControl);
+
+            figureTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
+                .Select(x => x.FullName + ", TetrisFigures")
+                .ToArray();
         }
 
         private string _currentGamer;
@@ -156,6 +164,8 @@ namespace TetrisMainWindow
         //contains additonal information about the changes in the score
         private string _add_scoring_info;
         private readonly object balanceLock = new object();
+        //holds the typenames of all the figures
+        private readonly string[] figureTypes;
         #region Properties
         public long Speed => _timer.Interval.Ticks;
         public string TopGamer
@@ -463,15 +473,6 @@ namespace TetrisMainWindow
         private TetrisUserControl GetNewFigure()
         {
             TetrisUserControl fig;
-
-            Type t = typeof(TetrisUserControl);
-
-            string[] figureTypes = AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(s => s.GetTypes())
-                        .Where(q => t.IsAssignableFrom(q) & !q.FullName.Contains("Interfaces"))
-                        .Select(x => x.FullName + ", TetrisFigures")
-                        .ToArray();
-
             Random p = new Random();
             int pInt = p.Next(0, figureTypes.Length);
 
