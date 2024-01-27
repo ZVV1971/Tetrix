@@ -88,6 +88,11 @@ namespace TetrisMainWindow
                 .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
                 .Select(x => x.FullName + ", TetrisFigures")
                 .ToArray();
+            _hoaring = new DispatcherTimer()
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _hoaring.Start();
         }
 
         private double _cellSizeForCanvas;
@@ -147,9 +152,11 @@ namespace TetrisMainWindow
 #endif
         //_timer for down events
         private DispatcherTimer _timer;
+        //timer for hoaring popups' movements
+        private readonly DispatcherTimer _hoaring;
         //holds the current version of the app
         private string _version;
-        //indicator-switcher to let freezing timer events from moving ones
+        //indicator-switcher to let differentiate freezing timer events from moving ones
         private long _event_interlacer;
         //the ration of moving event to freezing ones
         private readonly int _interlace_factor = 3;
@@ -365,7 +372,7 @@ namespace TetrisMainWindow
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
 
-            foreach (int i in currentFigureCoordinates.Select(x => x.Item2).Distinct().OrderBy(y => y))
+            foreach (int i in currentFigureCoordinates.Select(x => x.Item2).Where(y => y > 0).Distinct().OrderBy(y => y))
             {
                 int l = 0;
                 for (int k = 0; k < _gridWidth; k++)
@@ -396,6 +403,11 @@ namespace TetrisMainWindow
             Canvas.SetTop(sc, top);
             sc.visibility = Visibility.Visible;
 
+            _hoaring.Tick += delegate (object snd, EventArgs eargs)
+            {
+                Canvas.SetTop(sc, top - 10 * sc.movementCounter++);
+            };
+
             DispatcherTimer tmr = new DispatcherTimer
             {
                 //Set the timer interval to the length of the animation.
@@ -408,6 +420,7 @@ namespace TetrisMainWindow
                 // Get rid of the timer.
                 ((DispatcherTimer)snd).Stop();
             };
+
             tmr.Start();
         }
 

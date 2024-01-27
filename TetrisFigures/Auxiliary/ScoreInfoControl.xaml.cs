@@ -12,9 +12,10 @@ namespace TetrisFigures.Auxiliary
         {
             InitializeComponent();
             DataContext = this;
+            movementCounter = 0;
         }
         public string txtScoreInfo { get; set; }
-
+        public int movementCounter { get; set; }
         public Visibility visibility
         {
             get { return (Visibility)GetValue(TBVisibilityProperty); }
