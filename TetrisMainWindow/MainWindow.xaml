@@ -97,9 +97,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
         </Grid>
-        <Canvas Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1">
-            
-        </Canvas>
+        <Canvas Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1"/>
         <TextBlock Grid.Column="3" Grid.Row="8" x:Name="StartButton" FontSize="28" FontFamily="Arial" FontWeight="Black" Focusable="False"
                    Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"
                    VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -107,28 +105,48 @@
         <TextBlock Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
             NEXT FIGURE:
         </TextBlock>
-        <Canvas x:Name="nextFigureCell" Grid.Column="3" Grid.Row="2" Background="Black"/>
-        <Grid Grid.Column="3" Grid.Row="3" x:Name="LevelGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="3*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
-                LEVEL:
-            </TextBlock>
-            <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
-                       FontWeight="DemiBold" x:Name="ScoreCell" Text="{Binding Level}"/>
-        </Grid>
+        <Canvas Grid.Row="2" Grid.Column="3" Grid.RowSpan="2" Panel.ZIndex="1">
+            <Path Stroke="White" StrokeThickness="1" x:Name="pathArrow" Fill="Aqua">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathGeometry.Figures>
+                            <PathFigureCollection>
+                                <PathFigure IsClosed="True" StartPoint="90,90">
+                                    <PathFigure.Segments>
+                                        <PathSegmentCollection>
+                                            <LineSegment Point="110,90"/>
+                                            <LineSegment Point="110,100"/>
+                                            <LineSegment Point="130,100"/>
+                                            <LineSegment Point="100,110"/>
+                                            <LineSegment Point="70,100"/>
+                                            <LineSegment Point="90,100"/>
+                                        </PathSegmentCollection>
+                                    </PathFigure.Segments>
+                                </PathFigure>
+                            </PathFigureCollection>
+                        </PathGeometry.Figures>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+        </Canvas>
+        <Canvas x:Name="nextFigureCell" Grid.Column="3" Grid.Row="3" Background="Black" Panel.ZIndex="0"/>
+        <Canvas x:Name="figureBeforeTheNextCell" Grid.Column="3" Grid.Row="2" Background="Black" Panel.ZIndex="0"/>
         <Grid Grid.Column="3" Grid.Row="4" x:Name="ScoreGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             <TextBlock Grid.Row="0" Grid.Column="0" Text="SCORE:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Score}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Score}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
+                LEVEL:
+            </TextBlock>
+            <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
+                       FontWeight="DemiBold" x:Name="ScoreCell" Text="{Binding Level}"/>
         </Grid>
         <Grid Grid.Column="3" Grid.Row="5">
             <Grid.ColumnDefinitions>
