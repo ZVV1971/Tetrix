@@ -28,7 +28,7 @@ namespace TetrisMainWindow
             DataContext = this;
             GameStarted = false;
             IsGameOver = false;
-            cellSize = 40;
+            cellSize = 35;
 
             mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
 
@@ -103,6 +103,7 @@ namespace TetrisMainWindow
         private int _gridHeight = 40;
         private TetrisUserControl currentFigure;
         private TetrisUserControl nextFigure;
+        private TetrisUserControl beforeNextFigure;
         private bool _gameStarted;
         private readonly int cellSize;
         //keeps track of the score
@@ -469,7 +470,8 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        /// Asks for new next figure and takes the "current" next figure as the current one
+        /// Cahnges the figures from Next->Current & before the Next -> Next
+        /// request the new figures if required
         /// </summary>
         private void GetNextFigure()
         {
@@ -477,20 +479,28 @@ namespace TetrisMainWindow
             {
                 currentFigure = GetNewFigure();
                 currentFigure.ChangeSize(cellSize);
+                nextFigure = GetNewFigure();
+                nextFigure.ChangeSize(cellSize);
             }
             else
             {
                 nextFigureCell.Children.Remove(nextFigure);
                 currentFigure = nextFigure;
+                figureBeforeTheNextCell.Children.Remove(beforeNextFigure);
+                nextFigure = beforeNextFigure;
             }
 
-            nextFigureCell.Children.Clear();
-            nextFigure = GetNewFigure();
-            nextFigure.ChangeSize(cellSize);
+            figureBeforeTheNextCell.Children.Clear();
+            beforeNextFigure = GetNewFigure();
+            beforeNextFigure.ChangeSize(cellSize);
 
             Canvas.SetLeft(nextFigure, nextFigureCell.ActualWidth / 2 - nextFigure.Width / 2);
             Canvas.SetBottom(nextFigure, nextFigureCell.ActualHeight / 2 - nextFigure.Height / 2);
             nextFigureCell.Children.Add(nextFigure);
+
+            Canvas.SetLeft(beforeNextFigure, figureBeforeTheNextCell.ActualWidth / 2 - beforeNextFigure.Width / 2);
+            Canvas.SetBottom(beforeNextFigure, figureBeforeTheNextCell.ActualHeight / 2 - beforeNextFigure.Height / 2);
+            figureBeforeTheNextCell.Children.Add(beforeNextFigure);
         }
 
         /// <summary>
