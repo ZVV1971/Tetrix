@@ -786,6 +786,12 @@ namespace TetrisMainWindow
 
         private void StartButton_Click(object sender, MouseButtonEventArgs e)
         {
+
+            if (GameStarted)
+            {
+                _timer.Tick -= TimerTickerHandler;
+                _timer.Stop();
+            }
             GameStarted = false;
             IsGameOver = false;
             ClearCellGrid();
