@@ -789,6 +789,8 @@ namespace TetrisMainWindow
             GameStarted = false;
             IsGameOver = false;
             ClearCellGrid();
+            nextFigureCell.Children.Clear();
+            figureBeforeTheNextCell.Children.Clear();
             DoNextFigure();
             _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
             //Start the game
