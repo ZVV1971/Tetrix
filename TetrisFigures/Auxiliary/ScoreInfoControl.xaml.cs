@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace TetrisFigures.Auxiliary
 {
@@ -14,6 +15,8 @@ namespace TetrisFigures.Auxiliary
             DataContext = this;
             movementCounter = 0;
         }
+
+        public DispatcherTimer timer;
         public string txtScoreInfo { get; set; }
         public int movementCounter { get; set; }
         public Visibility visibility

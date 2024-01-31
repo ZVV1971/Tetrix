@@ -401,6 +401,7 @@ namespace TetrisMainWindow
             {
                 Interval = TimeSpan.FromMilliseconds(100)
             };
+            sc.timer = hoaring;
 
             hoaring.Tick += delegate (object snd, EventArgs eargs)
             {
@@ -416,8 +417,11 @@ namespace TetrisMainWindow
             {
                 // The animation will be over now, remove the popup
                 cnvInformation.Children.Remove(sc);
-                // Get rid of the timer.
+                // Get rid of the timers.
                 ((DispatcherTimer)snd).Stop();
+                sc.timer.Stop();
+                sc.timer = null;
+                sc = null;
             };
             hoaring.Start();
             tmr.Start();
