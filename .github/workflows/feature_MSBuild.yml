@@ -44,13 +44,3 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
 
-    - name: Sign the DLL & EXE files
-      uses: dlemstra/code-sign-action@v1
-      with:
-          certificate: '${{ secrets.TNL_PFX }}'
-          folder: '${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\bin\Release'
-          recursive: true
-          files: |
-            Tetris.exe
-            TetrisFigures.dll
-          description: 'Signing of executables'
