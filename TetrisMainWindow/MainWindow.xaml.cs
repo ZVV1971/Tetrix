@@ -482,9 +482,9 @@ namespace TetrisMainWindow
             if (!GameStarted)
             {
                 currentFigure = GetNewFigure();
-                currentFigure.ChangeSize(cellSize);
+                currentFigure.ChangeSize((int)(cellSize * 0.75));
                 nextFigure = GetNewFigure();
-                nextFigure.ChangeSize(cellSize);
+                nextFigure.ChangeSize((int)(cellSize * 0.75));
             }
             else
             {
@@ -496,15 +496,17 @@ namespace TetrisMainWindow
 
             figureBeforeTheNextCell.Children.Clear();
             beforeNextFigure = GetNewFigure();
-            beforeNextFigure.ChangeSize(cellSize);
+            beforeNextFigure.ChangeSize((int)(cellSize * 0.75));
 
             Canvas.SetLeft(nextFigure, nextFigureCell.ActualWidth / 2 - nextFigure.Width / 2);
             Canvas.SetBottom(nextFigure, nextFigureCell.ActualHeight / 2 - nextFigure.Height / 2);
             nextFigureCell.Children.Add(nextFigure);
+            nextFigureCell.ToolTip = nextFigure.GetType().Name.Replace("Control", String.Empty).Replace("Tetris", String.Empty);
 
             Canvas.SetLeft(beforeNextFigure, figureBeforeTheNextCell.ActualWidth / 2 - beforeNextFigure.Width / 2);
             Canvas.SetBottom(beforeNextFigure, figureBeforeTheNextCell.ActualHeight / 2 - beforeNextFigure.Height / 2);
             figureBeforeTheNextCell.Children.Add(beforeNextFigure);
+            figureBeforeTheNextCell.ToolTip = beforeNextFigure.GetType().Name.Replace("Control", String.Empty).Replace("Tetris", String.Empty);
         }
 
         /// <summary>

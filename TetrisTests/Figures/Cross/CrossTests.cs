@@ -5,35 +5,36 @@ using System.Threading;
 using TetrisFigures;
 using TetrisFigures.Interfaces;
 
-namespace TetrisTests.Figures.Square
+namespace TetrisTests.Figures.Cross
 {
-    internal class SquareTests
+    internal class CrossTests
     {
         public TetrisUserControl ctrl;
 
         [SetUp]
         public void Setup()
         {
-            ctrl = new TetrisSquareControl();
+            ctrl = new TetrisCrossControl();
         }
 
-        [TestCaseSource(nameof(SquarePositions)), Description("Test whether Square rotation gives the original Square position")]
+        [TestCaseSource(nameof(CrossPositions)), Description("Test whether Cross rotation gives the original Cross position")]
         [Apartment(ApartmentState.STA)]
-        public void TestSquareRotation(List<Tuple<int, int>> pos)
+        public void TestCrossRotation(List<Tuple<int, int>> pos)
         {
             Assert.AreEqual(pos, ctrl.Rotate(pos));
         }
 
-        public static object[] SquarePositions =
+        public static object[] CrossPositions =
         {
             new object[]
             {
                 new List<Tuple<int, int>>()
                 {
+                    new Tuple<int, int>(9, 9),
                     new Tuple<int, int>(10, 10),
-                    new Tuple<int, int>(11, 10),
-                    new Tuple<int, int>(10, 11),
-                    new Tuple<int, int>(11, 11),
+                    new Tuple<int, int>(10, 9),
+                    new Tuple<int, int>(10, 8),
+                    new Tuple<int, int>(11, 9)
                 }
             }
         };

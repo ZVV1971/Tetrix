@@ -69,6 +69,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="TetrisCrossControl.xaml.cs">
+      <DependentUpon>TetrisCrossControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TetrisHalfCrossControl.xaml.cs">
       <DependentUpon>TetrisHalfCrossControl.xaml</DependentUpon>
     </Compile>
@@ -110,6 +113,10 @@
       <DependentUpon>TetrisCellControl.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TetrisCrossControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="TetrisHalfCrossControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
