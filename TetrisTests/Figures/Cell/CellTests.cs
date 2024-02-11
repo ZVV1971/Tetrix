@@ -7,7 +7,7 @@ using TetrisFigures.Interfaces;
 
 namespace TetrisTests.Figures.Cell
 {
-    class CellTests
+    internal class CellTests
     {
         public TetrisUserControl ctrl;
 

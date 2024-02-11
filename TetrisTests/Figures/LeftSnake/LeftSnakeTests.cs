@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace TetrisTests.Figures.LeftSnake
 {
-    public class PositionTests
+    internal class PositionTests
     {
         public TetrisUserControl ctrl;
 

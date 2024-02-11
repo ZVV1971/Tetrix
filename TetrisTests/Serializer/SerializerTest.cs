@@ -5,7 +5,7 @@ using TetrisFigures.Helper;
 
 namespace TetrisTests.Serializer
 {
-    class SerializerTest
+    internal class SerializerTest
     {
         List<Tuple<string, int, int, DateTime>> list;
 
