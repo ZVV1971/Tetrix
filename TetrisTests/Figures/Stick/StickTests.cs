@@ -45,6 +45,13 @@ namespace TetrisTests.Figures.Stick
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(pos))));
         }
 
+        [TestCaseSource(nameof(StickPositions)), Description("Test that Stick figure being rotated returns in the next position")]
+        [Apartment(ApartmentState.STA)]
+        public void TestStickRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreEqual((d + 1) % StickPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
+        }
+
         public static object[] StickPositions =
         {
             //Horizontal position

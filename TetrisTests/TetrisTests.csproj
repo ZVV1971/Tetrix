@@ -22,4 +22,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Figures\Cap\" />
+  </ItemGroup>
+
 </Project>
