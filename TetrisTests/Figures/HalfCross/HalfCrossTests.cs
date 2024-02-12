@@ -51,6 +51,13 @@ namespace TetrisTests.Figures.HalfCross
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(pos))))));
         }
 
+        [TestCaseSource(nameof(HalfCrossPositions)), Description("Test that HalfCross figure being rotated returns in the next position")]
+        [Apartment(ApartmentState.STA)]
+        public void TestHalfCrossRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreEqual((d + 1) % HalfCrossPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
+        }
+
         public static object[] HalfCrossPositions =
         {
             //Initial position #0
