@@ -45,6 +45,13 @@ namespace TetrisTests.Figures.RightSnake
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(pos))));
         }
 
+        [TestCaseSource(nameof(RightSnakePositions)), Description("Test that RightSnake figure being rotated returns in the next position")]
+        [Apartment(ApartmentState.STA)]
+        public void TestRightSnakeRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreEqual((d + 1) % RightSnakePositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
+        }
+
         public static object[] RightSnakePositions =
         {
             //Initial position #0

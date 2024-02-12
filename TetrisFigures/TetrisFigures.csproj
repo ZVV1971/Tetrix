@@ -69,6 +69,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="TetrisCapControl.xaml.cs">
+      <DependentUpon>TetrisCapControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TetrisCrossControl.xaml.cs">
       <DependentUpon>TetrisCrossControl.xaml</DependentUpon>
     </Compile>
@@ -104,6 +107,10 @@
     <Page Include="Dialogs\HighScoresDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TetrisCapControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="TetrisCellControl.xaml">
       <Generator>MSBuild:Compile</Generator>
