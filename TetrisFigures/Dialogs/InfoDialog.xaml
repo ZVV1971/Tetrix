@@ -51,7 +51,9 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="15"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="5" x:Name="SpaceButton" Click="SpaceButton_Click"/>
+            <Button Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="5" x:Name="SpaceButton" Click="SpaceButton_Click">
+                <TextBlock Text="space" FontStretch="ExtraExpanded"/>
+            </Button>
             <Button Grid.Row="1" Grid.Column="3" x:Name="UpButton" Click="UpButton_Click">
                 <Button.Content>
                     <Path Stroke="Black" StrokeThickness="2" Data="M -10,-10 L 0,0 -10,10" VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="Fill" Width="20" RenderTransformOrigin="0.5,0.5" Height="23">
