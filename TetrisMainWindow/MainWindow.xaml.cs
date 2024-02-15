@@ -630,6 +630,8 @@ namespace TetrisMainWindow
                 HighestScore = Score;
                 TopGamer = _currentGamer;
             }
+
+            pnMenuPanel.IsEnabled = true;
         }
 
         /// <summary>
@@ -823,6 +825,7 @@ namespace TetrisMainWindow
             }
             _full_rows_list.Clear();
             _timer.Start();
+            pnMenuPanel.IsEnabled = false;
 
             //Return focus to the main canvas so as to allow it catching keyboard events
             _ = Keyboard.Focus(cellGrid);
@@ -844,6 +847,17 @@ namespace TetrisMainWindow
                 byte[] data = ObjectSerialize.Serialize(highestScores.Take(10).ToList());
                 fs.Write(data, 0, data.Length);
             }
+        }
+
+        private void MenuItemInfo_Click(object sender, RoutedEventArgs e)
+        {
+            InfoDialog dlg = new InfoDialog();
+            _ = dlg.ShowDialog();
+        }
+
+        private void MenuItemScores_Click(object sender, RoutedEventArgs e)
+        {
+            TextBlock_MouseLeftButtonDown(sender, null);
         }
     }
 }

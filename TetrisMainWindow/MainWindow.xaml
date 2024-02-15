@@ -6,13 +6,27 @@
         xmlns:local="clr-namespace:TetrisMainWindow"
         mc:Ignorable="d"
         Title="Tetrix"
-        ResizeMode="NoResize" Width="650" Height="880" Focusable="False" Loaded="Window_Loaded" Closed="Window_Closed">
+        ResizeMode="NoResize" Width="650" Height="910" Focusable="False" Loaded="Window_Loaded" Closed="Window_Closed">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style TargetType="MenuItem">
+            <Setter Property="FontFamily" Value ="Arial"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Light"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="GeneralStyle_tb">
+            <Setter Property="FontSize" Value="19"/>
+            <Setter Property="FontWeight" Value="DemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
     </Window.Resources>
     <Grid x:Name="OuterGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" x:Name="UpperRow"/>
+            <RowDefinition MinHeight="30" x:Name="MenuRow"/>
             <RowDefinition MinHeight="100" x:Name="CanvasRow1"/>
             <RowDefinition MinHeight="100" x:Name="CanvasRow2"/>
             <RowDefinition MinHeight="100" x:Name="CanvasRow3"/>
@@ -31,7 +45,13 @@
             <ColumnDefinition x:Name="InfoColumn" MinWidth="200"/>
             <ColumnDefinition Width="*" x:Name="RightColumn"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
+        <DockPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" x:Name="pnMenuPanel" Margin="1,1,-1,-1" IsEnabled="True">
+            <Menu Focusable="False" DockPanel.Dock="Top" KeyboardNavigation.TabNavigation="None" Background="White">
+                <MenuItem Header="Info" Click="MenuItemInfo_Click" IsTabStop="False" ToolTip="Information (available only when the game's stopped)"/>
+                <MenuItem Header="High Scores" Click="MenuItemScores_Click"/>
+            </Menu>
+        </DockPanel>
+        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -97,15 +117,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
         </Grid>
-        <Canvas Grid.Column="1" Grid.Row="1" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1"/>
-        <TextBlock Grid.Column="3" Grid.Row="8" x:Name="StartButton" FontSize="28" FontFamily="Arial" FontWeight="Black" Focusable="False"
-                   Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"
-                   VerticalAlignment="Center" HorizontalAlignment="Center">
-        </TextBlock>
-        <TextBlock Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
-            NEXT FIGURE:
-        </TextBlock>
-        <Canvas Grid.Row="2" Grid.Column="3" Grid.RowSpan="2" Panel.ZIndex="1">
+        <Canvas Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1"/>
+        <TextBlock Grid.Column="3" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource GeneralStyle_tb}" Text="NEXT FIGURE:"/>
+        <Canvas Grid.Row="3" Grid.Column="3" Grid.RowSpan="2" Panel.ZIndex="1">
             <Path Stroke="White" StrokeThickness="1" x:Name="pathArrow" Fill="GreenYellow">
                 <Path.Data>
                     <PathGeometry>
@@ -129,9 +143,9 @@
                 </Path.Data>
             </Path>
         </Canvas>
-        <Canvas x:Name="nextFigureCell" Grid.Column="3" Grid.Row="3" Background="Black" Panel.ZIndex="0" ToolTip="Shows the next figure"/>
-        <Canvas x:Name="figureBeforeTheNextCell" Grid.Column="3" Grid.Row="2" Background="Black" Panel.ZIndex="0" ToolTip="Shows the figure before the next"/>
-        <Grid Grid.Column="3" Grid.Row="4" x:Name="ScoreGrid">
+        <Canvas x:Name="figureBeforeTheNextCell" Grid.Column="3" Grid.Row="3" Background="Black" Panel.ZIndex="0" ToolTip="Shows the figure before the next"/>
+        <Canvas x:Name="nextFigureCell" Grid.Column="3" Grid.Row="4" Background="Black" Panel.ZIndex="0" ToolTip="Shows the next figure"/>
+        <Grid Grid.Column="3" Grid.Row="5" x:Name="ScoreGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -140,15 +154,15 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="SCORE:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
-            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Score}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold">
-                LEVEL:
-            </TextBlock>
-            <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
-                       FontWeight="DemiBold" x:Name="ScoreCell" Text="{Binding Level}"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="SCORE:" Style="{StaticResource GeneralStyle_tb}"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Score}" Style="{StaticResource GeneralStyle_tb}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="LEVEL:" Style="{StaticResource GeneralStyle_tb}"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource GeneralStyle_tb}" x:Name="ScoreCell" Text="{Binding Level}"/>
         </Grid>
-        <Grid Grid.Column="3" Grid.Row="5">
+        <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Grid.RowSpan="2" FontSize="84" x:Name="GameOVerBlock"
+                   Foreground="Red" Style="{StaticResource GeneralStyle_tb}" 
+                   Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVis}}" Text="GAME OVER"/>
+        <Grid Grid.Column="3" Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="2*"/>
@@ -156,21 +170,18 @@
             <Grid.RowDefinitions>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="19" FontWeight="DemiBold" TextWrapping="Wrap">
-                Rows to finish level:
-            </TextBlock>
-            <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" 
-                       FontWeight="DemiBold" x:Name="RowsToFinishCell" Text="{Binding RowsToFinish}"/>
+            <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource GeneralStyle_tb}" TextWrapping="Wrap" Text="Rows to finish level:"/>
+            <TextBlock Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource GeneralStyle_tb}" x:Name="RowsToFinishCell" Text="{Binding RowsToFinish}"/>
         </Grid>
-        <Grid Grid.Column="3" Grid.Row="6" x:Name="SpeedInfo" Visibility="Hidden">
+        <Grid Grid.Column="3" Grid.Row="7" x:Name="SpeedInfo" Visibility="Hidden">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Speed" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
-            <TextBlock Grid.Row="1" Text="{Binding Speed}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="19" FontWeight="DemiBold"/>
+            <TextBlock Grid.Row="0" Text="Speed" Style="{StaticResource GeneralStyle_tb}"/>
+            <TextBlock Grid.Row="1" Text="{Binding Speed}" Style="{StaticResource GeneralStyle_tb}"/>
         </Grid>
-        <Label Grid.Column="3" Grid.Row="7" x:Name="lblAdditionalScoringInfo" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Label Grid.Column="3" Grid.Row="8" x:Name="lblAdditionalScoringInfo" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Label.Style>
                 <Style TargetType="{x:Type Label}">
                     <Style.Triggers>
@@ -187,14 +198,11 @@
                     </Style.Triggers>
                 </Style>
             </Label.Style>
-            <TextBlock Text="{Binding AdditionalScoringInfo}" FontSize="16" FontWeight="DemiBold" Foreground="Black" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding AdditionalScoringInfo}" FontSize="16" Style="{StaticResource GeneralStyle_tb}"/>
         </Label>
-        <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Grid.RowSpan="2" FontSize="84" x:Name="GameOVerBlock"
-                   Foreground="Red" FontWeight="Black" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                   Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVis}}">
-            GAME OVER
-        </TextBlock>
-        <StatusBar Grid.Row="10" Grid.ColumnSpan="5" Grid.Column="0">
+        <TextBlock Grid.Column="3" Grid.Row="9" x:Name="StartButton" FontSize="28" Style="{StaticResource GeneralStyle_tb}"
+                   Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"/>
+        <StatusBar Grid.Row="11" Grid.ColumnSpan="5" Grid.Column="0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -220,10 +228,10 @@
             </StatusBarItem>
             <Separator Grid.Column="1"/>
             <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding TopGamer}"/>
+                <TextBlock Text="{Binding TopGamer}" ToolTip="Top gamer"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
-                <TextBlock Text="{Binding VersionNumber}"/>
+                <TextBlock Text="{Binding VersionNumber}" ToolTip="Cuurent version"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>
