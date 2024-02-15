@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TetrisFigures.Dialogs"
         mc:Ignorable="d"
-        Title="InfoDialog" Height="400" Width="270" ResizeMode="NoResize" ContentRendered="Window_ContentRendered">
+        Title="InfoDialog" Height="400" Width="285" ResizeMode="NoResize" ContentRendered="Window_ContentRendered">
     <Window.Resources>
         <Style TargetType="{x:Type Button}">
             <Setter Property="BorderBrush" Value="Black"/>
@@ -22,6 +22,7 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -50,7 +51,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="15"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="5" x:Name="SpaceButton"/>
+            <Button Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="5" x:Name="SpaceButton" Click="SpaceButton_Click"/>
             <Button Grid.Row="1" Grid.Column="3" x:Name="UpButton" Click="UpButton_Click">
                 <Button.Content>
                     <Path Stroke="Black" StrokeThickness="2" Data="M -10,-10 L 0,0 -10,10" VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="Fill" Width="20" RenderTransformOrigin="0.5,0.5" Height="23">
@@ -62,7 +63,7 @@
                     </Path>
                 </Button.Content>
             </Button>
-            <Button Grid.Row="3" Grid.Column="3" x:Name="DownButton">
+            <Button Grid.Row="3" Grid.Column="3" x:Name="DownButton" Click="DownButton_Click">
                 <Button.Content>
                     <Path Stroke="Black" StrokeThickness="2" Data="M -10,-10 L 0,0 -10,10" VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="Fill" Width="20" RenderTransformOrigin="0.5,0.5" Height="23">
                         <Path.RenderTransform>
@@ -73,7 +74,7 @@
                     </Path>
                 </Button.Content>
             </Button>
-            <Button Grid.Row="2" Grid.Column="2" x:Name="LeftButton">
+            <Button Grid.Row="2" Grid.Column="2" x:Name="LeftButton" Click="LeftButton_Click">
                 <Button.Content>
                     <Path Stroke="Black" StrokeThickness="2" Data="M -10,-10 L 0,0 -10,10" VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="Fill" Width="20" RenderTransformOrigin="0.5,0.5" Height="23">
                         <Path.RenderTransform>
@@ -84,7 +85,7 @@
                     </Path>
                 </Button.Content>
             </Button>
-            <Button Grid.Row="2" Grid.Column="4" x:Name="RightButton">
+            <Button Grid.Row="2" Grid.Column="4" x:Name="RightButton" Click="RightButton_Click">
                 <Button.Content>
                     <Path Stroke="Black" StrokeThickness="2" Data="M -10,-10 L 0,0 -10,10" VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="Fill" Width="20" RenderTransformOrigin="0.5,0.5" Height="23">
                         <Path.RenderTransform>
