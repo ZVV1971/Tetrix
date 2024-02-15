@@ -48,8 +48,6 @@ namespace TetrisFigures.Dialogs
             {
                 Canvas.SetLeft(ctrl, left);
                 Canvas.SetBottom(ctrl, bottom);
-                ctrl.LayoutTransform = null;
-                rotationAngle = 0;
                 tblk.Visibility = Visibility.Hidden;
             };
             tmr.Start();
