@@ -851,7 +851,8 @@ namespace TetrisMainWindow
 
         private void MenuItemInfo_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Test mb");
+            InfoDialog dlg = new InfoDialog();
+            _ = dlg.ShowDialog();
         }
 
         private void MenuItemScores_Click(object sender, RoutedEventArgs e)
