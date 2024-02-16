@@ -163,7 +163,8 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="70"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
@@ -185,7 +186,10 @@
                 <TextBlock Text="{Binding TopGamer}" ToolTip="Top gamer"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
-                <TextBlock Text="{Binding VersionNumber}" ToolTip="Cuurent version"/>
+                <Label Content="{Binding Path=GameFieldSize}" ToolTip="The size of the gamefield"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4">
+                <TextBlock Text="{Binding VersionNumber}" ToolTip="Current version"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

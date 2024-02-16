@@ -291,6 +291,33 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("AdditionalScoringInfo");
             }
         }
+        public string GameFieldSize 
+        {
+            get 
+            { 
+                return (string.Format("{0}✕{1}", _gridWidth, _gridHeight));
+            } 
+        }
+        public int GridWidth
+        {
+            get {return _gridWidth; }
+            private set
+            {
+                _gridWidth = value;
+                NotifyPropertyChanged("GridWidth");
+                NotifyPropertyChanged("GameFieldSize");
+            }
+        }
+        public int GridHeight
+        {
+            get { return _gridHeight; }
+            private set
+            {
+                _gridWidth = value;
+                NotifyPropertyChanged("GridHeight");
+                NotifyPropertyChanged("GameFieldSize");
+            }
+        }
         #endregion
         public event PropertyChangedEventHandler PropertyChanged;
 
