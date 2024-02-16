@@ -26,7 +26,8 @@ namespace TetrisMainWindow
         {
             InitializeComponent();
             DataContext = this;
-            GameStarted = false;
+            IsGameStarted = false;
+            IsGamePaused = false;
             IsGameOver = false;
             cellSize = 35;
 
@@ -105,6 +106,7 @@ namespace TetrisMainWindow
         private TetrisUserControl nextFigure;
         private TetrisUserControl beforeNextFigure;
         private bool _gameStarted;
+        private bool _gamePaused;
         private readonly int cellSize;
         //keeps track of the score
         private int _score;
@@ -112,6 +114,8 @@ namespace TetrisMainWindow
         private int _level;
         //Text on the Start button
         private string _startButtonText = "Start";
+        private string _pauseButtonText = "Pause";
+        private string _overOrPauseText = "GAME OVER";
         private bool _isGameOver = false;
         //Keeps track of rows to be finished before the next level is started
         private int _rowsToFinish;
@@ -188,6 +192,24 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("startButtonText");
             }
         }
+        public string pauseButtonText
+        {
+            get { return _pauseButtonText; }
+            private set
+            {
+                _pauseButtonText = value;
+                NotifyPropertyChanged("pauseButtonText");
+            }
+        }
+        public string overOrPauseText
+        {
+            get { return _overOrPauseText; }
+            private set
+            {
+                _overOrPauseText = value;
+                NotifyPropertyChanged("overOrPauseText");
+            }
+        }
         public int Level
         {
             get { return _level; }
@@ -206,13 +228,22 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("Score");
             }
         }
-        public bool GameStarted
+        public bool IsGameStarted
         {
             get { return _gameStarted; }
             private set 
             { 
                 _gameStarted = value;
-                NotifyPropertyChanged("GameStarted");
+                NotifyPropertyChanged("IsGameStarted");
+            }
+        }
+        public bool IsGamePaused
+        {
+            get { return _gamePaused; }
+            private set
+            {
+                _gamePaused = value;
+                NotifyPropertyChanged("IsGamePaused");
             }
         }
         public bool IsGameOver
@@ -251,7 +282,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("VersionNumber");
             }
         }
-        public string AdditionalScoringInfo 
+        public string AdditionalScoringInfo
         {
             get { return _add_scoring_info; }
             private set
@@ -479,7 +510,7 @@ namespace TetrisMainWindow
         /// </summary>
         private void GetNextFigure()
         {
-            if (!GameStarted)
+            if (!IsGameStarted)
             {
                 currentFigure = GetNewFigure();
                 currentFigure.ChangeSize((int)(cellSize * 0.75));
@@ -555,7 +586,7 @@ namespace TetrisMainWindow
 
         private void CellGrid_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!GameStarted) return;
+            if (!IsGameStarted | IsGamePaused) return;
 
             List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
             switch (e.Key)
@@ -609,7 +640,7 @@ namespace TetrisMainWindow
         {
             _timer.Stop();
 
-            GameStarted = false;
+            IsGameStarted = false;
             IsGameOver = true;
             if (_currentGamer is null || _currentGamer.Equals(string.Empty))
             {
@@ -792,15 +823,21 @@ namespace TetrisMainWindow
             }
         }
 
-        private void StartButton_Click(object sender, MouseButtonEventArgs e)
+        private void StartButton_Click(object sender, RoutedEventArgs e)
         {
 
-            if (GameStarted)
+            if (IsGameStarted)
             {
                 _timer.Tick -= TimerTickerHandler;
                 _timer.Stop();
             }
-            GameStarted = false;
+            if (IsGamePaused)
+            {
+                pauseButtonText = "Pause";
+                overOrPauseText = "GAME OVER";
+                IsGamePaused = false;
+            }
+            IsGameStarted = false;
             IsGameOver = false;
             ClearCellGrid();
             nextFigureCell.Children.Clear();
@@ -808,7 +845,7 @@ namespace TetrisMainWindow
             DoNextFigure();
             _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
             //Start the game
-            GameStarted = true;
+            IsGameStarted = true;
             startButtonText = "Restart";
             Level = 0;
             Score = 0;
@@ -858,6 +895,23 @@ namespace TetrisMainWindow
         private void MenuItemScores_Click(object sender, RoutedEventArgs e)
         {
             TextBlock_MouseLeftButtonDown(sender, null);
+        }
+
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsGamePaused)
+            {
+                pauseButtonText = "Resume";
+                overOrPauseText = "Paused";
+                _timer.Stop();
+            }
+            else
+            {
+                pauseButtonText = "Pause";
+                overOrPauseText = "GAME OVER";
+                _timer.Start();
+            }
+            IsGamePaused = !IsGamePaused;
         }
     }
 }

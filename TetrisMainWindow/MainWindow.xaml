@@ -4,11 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TetrisMainWindow"
+        xmlns:conv="clr-namespace:TetrisFigures.Converters;assembly=TetrisFigures"
         mc:Ignorable="d"
         Title="Tetrix"
         ResizeMode="NoResize" Width="650" Height="910" Focusable="False" Loaded="Window_Loaded" Closed="Window_Closed">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:MultiBoolToVisibilityConverter x:Key="MultiBoolToVis"/>
         <Style TargetType="MenuItem">
             <Setter Property="FontFamily" Value ="Arial"/>
             <Setter Property="FontSize" Value="14"/>
@@ -51,7 +53,7 @@
                 <MenuItem Header="High Scores" Click="MenuItemScores_Click"/>
             </Menu>
         </DockPanel>
-        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding GameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
+        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding IsGameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -161,7 +163,14 @@
         </Grid>
         <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Grid.RowSpan="2" FontSize="84" x:Name="GameOVerBlock"
                    Foreground="Red" Style="{StaticResource GeneralStyle_tb}" 
-                   Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVis}}" Text="GAME OVER"/>
+                   Text="{Binding Path=overOrPauseText}">
+            <TextBlock.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBoolToVis}">
+                    <Binding Path="IsGameOver"/>
+                    <Binding Path="IsGamePaused"/>
+                </MultiBinding>
+            </TextBlock.Visibility>
+        </TextBlock>
         <Grid Grid.Column="3" Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*"/>
@@ -200,8 +209,17 @@
             </Label.Style>
             <TextBlock Text="{Binding AdditionalScoringInfo}" FontSize="16" Style="{StaticResource GeneralStyle_tb}"/>
         </Label>
-        <TextBlock Grid.Column="3" Grid.Row="9" x:Name="StartButton" FontSize="28" Style="{StaticResource GeneralStyle_tb}"
-                   Text="{Binding Path=startButtonText}" MouseLeftButtonDown="StartButton_Click"/>
+        <StackPanel Grid.Column="3" Grid.Row="9" KeyboardNavigation.TabNavigation="None">
+            <Button Grid.Column="0" Grid.Row="0" x:Name="StartButton" Click="StartButton_Click" Focusable="False">
+                <TextBlock FontSize="28" Style="{StaticResource GeneralStyle_tb}"
+                       Text="{Binding Path=startButtonText}"/>
+            </Button>
+            <Button Grid.Column="1" Grid.Row="0" x:Name="PauseButton" Click="PauseButton_Click"
+                    Visibility="{Binding IsGameStarted, Converter={StaticResource BoolToVis}}" Focusable="False">
+                <TextBlock FontSize="28" Style="{StaticResource GeneralStyle_tb}"
+                       Text="{Binding Path=pauseButtonText}"/>
+            </Button>
+        </StackPanel>
         <StatusBar Grid.Row="11" Grid.ColumnSpan="5" Grid.Column="0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
