@@ -582,6 +582,14 @@ namespace TetrisMainWindow
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Keyboard.Focus(cellGrid);
+            for (int i = 1; i <= _gridWidth; i++)
+            {
+                cellGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            }
+            for (int j = 1; j <= _gridHeight; j++)
+            {
+                cellGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            }
         }
 
         private void CellGrid_KeyDown(object sender, KeyEventArgs e)
