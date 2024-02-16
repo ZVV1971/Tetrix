@@ -55,6 +55,7 @@
       <DependentUpon>ScoreInfoControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
+    <Compile Include="Converters\MultiBoolToVisibilityConverter.cs" />
     <Compile Include="Dialogs\GamerNameDialog.xaml.cs">
       <DependentUpon>GamerNameDialog.xaml</DependentUpon>
     </Compile>
