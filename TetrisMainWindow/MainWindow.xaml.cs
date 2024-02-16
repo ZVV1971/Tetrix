@@ -100,8 +100,8 @@ namespace TetrisMainWindow
         //the highest score to be shown in the StatusBar
         private int _highScore;
         //the size of cell
-        private int _gridWidth = 20;
-        private int _gridHeight = 40;
+        private byte _gridWidth = 20;
+        private byte _gridHeight = 40;
         private TetrisUserControl currentFigure;
         private TetrisUserControl nextFigure;
         private TetrisUserControl beforeNextFigure;
@@ -298,7 +298,7 @@ namespace TetrisMainWindow
                 return (string.Format("{0}✕{1}", _gridWidth, _gridHeight));
             } 
         }
-        public int GridWidth
+        public byte GridWidth
         {
             get {return _gridWidth; }
             private set
@@ -308,7 +308,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("GameFieldSize");
             }
         }
-        public int GridHeight
+        public byte GridHeight
         {
             get { return _gridHeight; }
             private set
@@ -947,6 +947,12 @@ namespace TetrisMainWindow
                 _timer.Start();
             }
             IsGamePaused = !IsGamePaused;
+        }
+
+        private void GameFieldSize_Click(object sender, RoutedEventArgs e)
+        {
+            GameFieldSizeDialog dlg = new GameFieldSizeDialog(GridWidth, GridHeight);
+            var v = dlg.ShowDialog();
         }
     }
 }

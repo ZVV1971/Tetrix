@@ -51,6 +51,9 @@
             <Menu Focusable="False" DockPanel.Dock="Top" KeyboardNavigation.TabNavigation="None" Background="White">
                 <MenuItem Header="Info" Click="MenuItemInfo_Click" IsTabStop="False" ToolTip="Information (available only when the game's stopped)"/>
                 <MenuItem Header="High Scores" Click="MenuItemScores_Click"/>
+                <MenuItem Header="Settings">
+                    <MenuItem Header="Gamefield size" Click="GameFieldSize_Click"/>
+                </MenuItem>
             </Menu>
         </DockPanel>
         <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding IsGameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
