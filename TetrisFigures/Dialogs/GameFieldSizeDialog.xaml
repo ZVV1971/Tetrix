@@ -30,7 +30,7 @@
             Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}"/>
         <TextBox Grid.Column="2" Grid.Row="1" x:Name="bHeight" Text="{Binding Path=height, NotifyOnValidationError=True,
             Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}"/>
-        <Button Grid.Column="0" Grid.Row="3" x:Name="btnOK" IsCancel="False" IsDefault="False" Content="OK"/>
-        <Button Grid.Column="2" Grid.Row="3" x:Name="btnCancel" IsCancel="True" IsDefault="True" Content="Cancel"/>
+        <Button Grid.Column="0" Grid.Row="3" x:Name="btnOK" IsCancel="False" IsDefault="False" Content="OK" Click="btnOK_Click"/>
+        <Button Grid.Column="2" Grid.Row="3" x:Name="btnCancel" IsCancel="True" IsDefault="True" Content="Cancel" Click="btnOK_Click"/>
     </Grid>
 </Window>

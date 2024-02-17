@@ -44,14 +44,19 @@ namespace TetrisFigures.Dialogs
                 new PropertyMetadata((byte)40),
                 new ValidateValueCallback(validateHeight));
 
-        static bool validateWidth(object value)
+        private static bool validateWidth(object value)
         {
             return (byte)value >= 10 && (byte)value <= 20;
         }
 
-        static bool validateHeight(object value)
+        private static bool validateHeight(object value)
         {
             return (byte)value >= 20 && (byte)value <= 40;
+        }
+
+        private void btnOK_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
