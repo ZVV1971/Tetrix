@@ -14,31 +14,9 @@
             <Setter Property="Validation.ErrorTemplate">
                 <Setter.Value>
                     <ControlTemplate x:Name="TextBoxErrorTemplate">
-                        <DockPanel LastChildFill="True">
-                            <AdornedElementPlaceholder>
+                        <AdornedElementPlaceholder>
                                 <Border BorderBrush="Red" BorderThickness="2"/>
-                            </AdornedElementPlaceholder>
-                            <TextBlock FontSize="12" Foreground="Red" Text="*"/>
-                        </DockPanel>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="Validation.HasError" Value="True">
-                    <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="TextBlockErrorStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="Validation.ErrorTemplate">
-                <Setter.Value>
-                    <ControlTemplate x:Name="TextBlockErrorTemplate">
-                        <DockPanel LastChildFill="True">
-                            <AdornedElementPlaceholder>
-                                <Border BorderBrush="Red" BorderThickness="2"/>
-                            </AdornedElementPlaceholder>
-                            <TextBlock FontSize="12" Foreground="Red" Text="*"/>
-                        </DockPanel>
+                         </AdornedElementPlaceholder>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -69,13 +47,12 @@
         <Label Grid.Column="0" Grid.Row="1" Content="Gamefield height:" VerticalContentAlignment="Center"
                HorizontalContentAlignment="Center" Target="{Binding ElementName=bHeight}"/>
         <Label Grid.Column="0" Grid.Row="2" Content="Ratio:" VerticalContentAlignment="Center" 
-               HorizontalContentAlignment="Center"/>
+               HorizontalContentAlignment="Center" Target="{Binding ElementName=lbRatio}"/>
         <TextBox Grid.Column="2" Grid.Row="0" x:Name="bWidth" Text="{Binding Path=sz.width, NotifyOnValidationError=True,
-            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"/>
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=LostFocus}" Style="{StaticResource TextBoxErrorStyle}"/>
         <TextBox Grid.Column="2" Grid.Row="1" x:Name="bHeight" Text="{Binding Path=sz.height, NotifyOnValidationError=True,
-            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"/>
-        <TextBlock Grid.Column="2" Grid.Row="2" x:Name="bRatio" Text="{Binding Path=sz.ratio, NotifyOnValidationError=True,
-            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBlockErrorStyle}"/>
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=LostFocus}" Style="{StaticResource TextBoxErrorStyle}"/>
+        <Label Grid.Column="2" Grid.Row="2" x:Name="lbRatio" Content="{Binding Path=sz.ratio}" IsEnabled="False"/>
         <Button Grid.Column="0" Grid.Row="3" x:Name="btnOK" IsCancel="False" IsDefault="True" Content="OK" Command="Save"/>
         <Button Grid.Column="2" Grid.Row="3" x:Name="btnCancel" IsCancel="True" IsDefault="False" Content="Cancel"/>
     </Grid>
