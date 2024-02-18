@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auxiliary\Enums.cs" />
+    <Compile Include="Auxiliary\GameGridSize.cs" />
     <Compile Include="Auxiliary\ScoreInfoControl.xaml.cs">
       <DependentUpon>ScoreInfoControl.xaml</DependentUpon>
     </Compile>

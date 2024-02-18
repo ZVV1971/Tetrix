@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Input;
+using TetrisFigures.Auxiliary;
 
 namespace TetrisFigures.Dialogs
 {
@@ -16,47 +18,34 @@ namespace TetrisFigures.Dialogs
         {
             InitializeComponent();
             DataContext = this;
-            width = w;
-            height = h;
+            sz = new GameGridSize()
+            {
+                height = h,
+                width = w
+            };
         }
 
-        public byte width
+        public GameGridSize sz
         {
-            get { return (byte)GetValue(GameFieldWidthProperty); }
-            set { SetValue(GameFieldWidthProperty, value); }
-        }
-        
-        public byte height
-        {
-            get { return (byte)GetValue(GameFieldHeightProperty); }
-            set { SetValue(GameFieldHeightProperty, value); }
+            get;
+            set;
         }
 
-        public static readonly DependencyProperty GameFieldWidthProperty =
-            DependencyProperty.Register(nameof(width),
-                typeof(byte), typeof(GameFieldSizeDialog),
-                new PropertyMetadata((byte)20),
-                new ValidateValueCallback(validateWidth));
-
-        public static readonly DependencyProperty GameFieldHeightProperty =
-            DependencyProperty.Register(nameof(height),
-                typeof(byte), typeof(GameFieldSizeDialog),
-                new PropertyMetadata((byte)40),
-                new ValidateValueCallback(validateHeight));
-
-        private static bool validateWidth(object value)
+        private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            return (byte)value >= 10 && (byte)value <= 20;
+            DialogResult = true;
         }
 
-        private static bool validateHeight(object value)
+        private void SaveCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            return (byte)value >= 20 && (byte)value <= 40;
-        }
-
-        private void btnOK_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
+            try
+            {
+                e.CanExecute = !sz.HasErrors;
+            }
+            catch 
+            {
+                e.CanExecute = false;
+            }
         }
     }
 }
