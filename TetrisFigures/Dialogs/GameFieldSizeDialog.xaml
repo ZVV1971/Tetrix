@@ -49,10 +49,10 @@
         <Label Grid.Column="0" Grid.Row="2" Content="Ratio:" VerticalContentAlignment="Center" 
                HorizontalContentAlignment="Center" Target="{Binding ElementName=lbRatio}"/>
         <TextBox Grid.Column="2" Grid.Row="0" x:Name="bWidth" Text="{Binding Path=sz.width, NotifyOnValidationError=True,
-            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=LostFocus}" Style="{StaticResource TextBoxErrorStyle}"/>
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"/>
         <TextBox Grid.Column="2" Grid.Row="1" x:Name="bHeight" Text="{Binding Path=sz.height, NotifyOnValidationError=True,
-            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=LostFocus}" Style="{StaticResource TextBoxErrorStyle}"/>
-        <Label Grid.Column="2" Grid.Row="2" x:Name="lbRatio" Content="{Binding Path=sz.ratio}" IsEnabled="False"/>
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"/>
+        <Label Grid.Column="2" Grid.Row="2" x:Name="lbRatio" Content="{Binding Path=sz.ratio, Mode=OneWay}"/>
         <Button Grid.Column="0" Grid.Row="3" x:Name="btnOK" IsCancel="False" IsDefault="True" Content="OK" Command="Save"/>
         <Button Grid.Column="2" Grid.Row="3" x:Name="btnCancel" IsCancel="True" IsDefault="False" Content="Cancel"/>
     </Grid>

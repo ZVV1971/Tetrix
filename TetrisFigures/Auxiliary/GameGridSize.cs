@@ -19,8 +19,8 @@ namespace TetrisFigures.Auxiliary
             set
             {
                 _width = value;
+                ratio = (_width != 0 && _height != 0) ? ((float)_height / (float)_width) : 2;
                 OnPropertyChanged("width");
-                ratio = (float)_height / (float)_width;
             }
         }
         public byte height
@@ -29,8 +29,8 @@ namespace TetrisFigures.Auxiliary
             set
             {
                 _height = value;
+                ratio = (_width != 0 && _height != 0) ? ((float)_height / (float)_width) : 2;
                 OnPropertyChanged("height");
-                ratio = (float)_height / (float)_width;
             }
         }
         public float ratio
@@ -45,60 +45,39 @@ namespace TetrisFigures.Auxiliary
 
         private void DataValidation(string name)
         {
-            switch (name)
+            List<string> listErrors;
+
+            if (propErrors.TryGetValue(nameof(width), out listErrors) == false)
+                listErrors = new List<string>();
+            else
+                listErrors.Clear();
+
+            if (width > 20)
+                listErrors.Add("Width cannot be greater than 20!!!");
+            else if (width < 10)
+                listErrors.Add("Width cannot be less than 10!!!");
+            propErrors[nameof(width)] = listErrors;
+
+            if (propErrors.TryGetValue(nameof(height), out listErrors) == false)
+                listErrors = new List<string>();
+            else
+                listErrors.Clear();
+
+            if (height > 40)
+                listErrors.Add("Height cannot be greater than 40!!!");
+            else if (height < 20)
+                listErrors.Add("Height cannot be less than 20!!!");
+            propErrors[nameof(height)] = listErrors;
+
+            if (name != nameof(ratio))
             {
-                case nameof(width):
-                    if (propErrors.TryGetValue(nameof(width), out List<string> listWErrors) == false)
-                        listWErrors = new List<string>();
-                    else
-                        listWErrors.Clear();
-
-                    if (width > 20)
-                        listWErrors.Add("Width cannot be greater than 20!!!");
-                    else if (width < 10)
-                        listWErrors.Add("Width cannot be less than 10!!!");
-                    propErrors[nameof(width)] = listWErrors;
-
-                    if (listWErrors.Count(x => x == nameof(width)) > 0)
-                    {
-                        OnPropertyErrorsChanged("width");
-                    }
-                    break;
-                case nameof(height):
-                    if (propErrors.TryGetValue(nameof(height), out List<string> listHErrors) == false)
-                        listHErrors = new List<string>();
-                    else
-                        listHErrors.Clear();
-
-                    if (height > 40)
-                        listHErrors.Add("Height cannot be greater than 40!!!");
-                    else if (height < 20)
-                        listHErrors.Add("Height cannot be less than 20!!!");
-                    propErrors[nameof(height)] = listHErrors;
-
-                    if (listHErrors.Count(x => x == nameof(height)) > 0)
-                    {
-                        OnPropertyErrorsChanged("height");
-                    }
-                    break;
-                case nameof(ratio):
-                    if (propErrors.TryGetValue(nameof(ratio), out List<string> listRErrors) == false)
-                        listRErrors = new List<string>();
-                    else
-                        listRErrors.Clear();
-
-                    if (ratio != 2)
-                        listRErrors.Add(string.Format("Ratio must be exactly 2!!! Not {0}", ratio));
-                    propErrors[nameof(ratio)] = listRErrors;
-
-                    if (listRErrors.Count(x => x == nameof(height)) > 0)
-                    {
-                        OnPropertyErrorsChanged("ratio");
-                    }
-                    break;
-                default:
-                    break;
+                if (ratio != 2)
+                    listErrors.Add(string.Format("Ratio must be exactly 2!!! Not {0}", ratio));
+                propErrors[name] = listErrors;
             }
+
+            OnPropertyErrorsChanged(nameof(height));
+            OnPropertyErrorsChanged(nameof(width));
         }
 
         # region INotifyDataErrorInfo
