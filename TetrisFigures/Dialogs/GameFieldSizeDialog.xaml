@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TetrisFigures.Dialogs"
         mc:Ignorable="d"
-        Title="GameFieldSizeDialog" Height="250" Width="300">
+        Title="GameFieldSizeDialog" Height="200" Width="300" ResizeMode="NoResize">
     <Window.Resources>
         <Style TargetType="{x:Type FrameworkElement}">
             <Setter Property="Margin" Value="5 5 5 5"/>
@@ -57,7 +57,7 @@
             Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"
                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10"/>
         <Label Grid.Column="4" Grid.Row="2" x:Name="lbRatio" Content="{Binding Path=sz.ratio, Mode=OneWay}" VerticalContentAlignment="Center" 
-               HorizontalContentAlignment="Center" Margin="10"/>
+               HorizontalContentAlignment="Center" Margin="5" ToolTip="The ratio must alway be 2!"/>
         <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" x:Name="btnOK" IsCancel="False" IsDefault="True" Content="OK" Command="Save" Margin="10"/>
         <Button Grid.Column="3" Grid.Row="3" Grid.ColumnSpan="2" x:Name="btnCancel" IsCancel="True" IsDefault="False" Content="Cancel" Margin="10"/>
     </Grid>

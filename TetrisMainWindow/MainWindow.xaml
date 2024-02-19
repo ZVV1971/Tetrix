@@ -181,7 +181,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" HorizontalAlignment="Right" Text="Highest score:"/>
                     <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding HighestScore}"
-                               ToolTip="Click on the text to view the highest scores" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown" />
+                               ToolTip="Click on the text to view the highest scores" MouseLeftButtonDown="ShowHighScores" />
                 </Grid>
             </StatusBarItem>
             <Separator Grid.Column="1"/>

@@ -43,6 +43,11 @@ namespace TetrisFigures.Auxiliary
             }
         }
 
+        protected async Task Validate(string name)
+        {
+            await Task.Factory.StartNew(() => { DataValidation(name); });
+        }
+
         private void DataValidation(string name)
         {
             List<string> listErrors;
@@ -72,7 +77,7 @@ namespace TetrisFigures.Auxiliary
             if (name != nameof(ratio))
             {
                 if (ratio != 2)
-                    listErrors.Add(string.Format("Ratio must be exactly 2!!! Not {0}", ratio));
+                { listErrors.Add(string.Format("Ratio must be exactly 2!!! Not {0}", ratio)); }
                 propErrors[name] = listErrors;
             }
 
@@ -86,7 +91,7 @@ namespace TetrisFigures.Auxiliary
         private void OnPropertyErrorsChanged(string p)
         {
             if (ErrorsChanged != null)
-                ErrorsChanged.Invoke(this, new DataErrorsChangedEventArgs(p));
+            { ErrorsChanged.Invoke(this, new DataErrorsChangedEventArgs(p)); }
         }
 
         public System.Collections.IEnumerable GetErrors(string propertyName)
@@ -96,9 +101,7 @@ namespace TetrisFigures.Auxiliary
                 propErrors.TryGetValue(propertyName, out List<string> errors);
                 return errors;
             }
-
-            else
-                return null;
+            else { return null; }
         }
 
         public bool HasErrors
@@ -122,10 +125,10 @@ namespace TetrisFigures.Auxiliary
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public void OnPropertyChanged(string name)
+        public async void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-            DataValidation(name);
+            await Validate(name);
         }
         #endregion
     }
