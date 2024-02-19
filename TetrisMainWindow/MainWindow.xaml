@@ -51,73 +51,12 @@
             <Menu Focusable="False" DockPanel.Dock="Top" KeyboardNavigation.TabNavigation="None" Background="White">
                 <MenuItem Header="Info" Click="MenuItemInfo_Click" IsTabStop="False" ToolTip="Information (available only when the game's stopped)"/>
                 <MenuItem Header="High Scores" Click="MenuItemScores_Click"/>
+                <MenuItem Header="Settings">
+                    <MenuItem Header="Gamefield size" Click="GameFieldSize_Click"/>
+                </MenuItem>
             </Menu>
         </DockPanel>
         <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding IsGameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
         </Grid>
         <Canvas Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1"/>
         <TextBlock Grid.Column="3" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource GeneralStyle_tb}" Text="NEXT FIGURE:"/>
@@ -227,7 +166,8 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="70"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
@@ -241,7 +181,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" HorizontalAlignment="Right" Text="Highest score:"/>
                     <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding HighestScore}"
-                               ToolTip="Click on the text to view the highest scores" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown" />
+                               ToolTip="Click on the text to view the highest scores" MouseLeftButtonDown="ShowHighScores" />
                 </Grid>
             </StatusBarItem>
             <Separator Grid.Column="1"/>
@@ -249,7 +189,10 @@
                 <TextBlock Text="{Binding TopGamer}" ToolTip="Top gamer"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
-                <TextBlock Text="{Binding VersionNumber}" ToolTip="Cuurent version"/>
+                <Label Content="{Binding Path=GameFieldSize}" ToolTip="The size of the gamefield"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4">
+                <TextBlock Text="{Binding VersionNumber}" ToolTip="Current version"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

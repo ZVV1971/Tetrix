@@ -1,0 +1,64 @@
+﻿<Window x:Class="TetrisFigures.Dialogs.GameFieldSizeDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TetrisFigures.Dialogs"
+        mc:Ignorable="d"
+        Title="GameFieldSizeDialog" Height="200" Width="300" ResizeMode="NoResize">
+    <Window.Resources>
+        <Style TargetType="{x:Type FrameworkElement}">
+            <Setter Property="Margin" Value="5 5 5 5"/>
+        </Style>
+        <Style x:Key="TextBoxErrorStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate x:Name="TextBoxErrorTemplate">
+                        <AdornedElementPlaceholder>
+                                <Border BorderBrush="Red" BorderThickness="2"/>
+                         </AdornedElementPlaceholder>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Save" Executed="SaveCommand_Executed" CanExecute="SaveCommand_CanExecute"/>
+    </Window.CommandBindings>
+    <Grid Margin="5 5 5 5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Gamefield width:" VerticalContentAlignment="Center" 
+               HorizontalContentAlignment="Center" Target="{Binding ElementName=bWidth}"/>
+        <Label Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Content="Gamefield height:" VerticalContentAlignment="Center"
+               HorizontalContentAlignment="Center" Target="{Binding ElementName=bHeight}"/>
+        <Label Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" Content="Ratio:" VerticalContentAlignment="Center" 
+               HorizontalContentAlignment="Center" Target="{Binding ElementName=lbRatio}"/>
+        <TextBox Grid.Column="4" Grid.Row="0" x:Name="bWidth" Text="{Binding Path=sz.width, NotifyOnValidationError=True,
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"
+                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10"/>
+        <TextBox Grid.Column="4" Grid.Row="1" x:Name="bHeight" Text="{Binding Path=sz.height, NotifyOnValidationError=True,
+            Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxErrorStyle}"
+                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10"/>
+        <Label Grid.Column="4" Grid.Row="2" x:Name="lbRatio" Content="{Binding Path=sz.ratio, Mode=OneWay}" VerticalContentAlignment="Center" 
+               HorizontalContentAlignment="Center" Margin="5" ToolTip="The ratio must alway be 2!"/>
+        <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" x:Name="btnOK" IsCancel="False" IsDefault="True" Content="OK" Command="Save" Margin="10"/>
+        <Button Grid.Column="3" Grid.Row="3" Grid.ColumnSpan="2" x:Name="btnCancel" IsCancel="True" IsDefault="False" Content="Cancel" Margin="10"/>
+    </Grid>
+</Window>

@@ -51,11 +51,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auxiliary\Enums.cs" />
+    <Compile Include="Auxiliary\GameGridSize.cs" />
     <Compile Include="Auxiliary\ScoreInfoControl.xaml.cs">
       <DependentUpon>ScoreInfoControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Converters\MultiBoolToVisibilityConverter.cs" />
+    <Compile Include="Dialogs\GameFieldSizeDialog.xaml.cs">
+      <DependentUpon>GameFieldSizeDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\GamerNameDialog.xaml.cs">
       <DependentUpon>GamerNameDialog.xaml</DependentUpon>
     </Compile>
@@ -101,6 +105,10 @@
       <DependentUpon>TetrisStickControl.xaml</DependentUpon>
     </Compile>
     <Page Include="Auxiliary\ScoreInfoControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\GameFieldSizeDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

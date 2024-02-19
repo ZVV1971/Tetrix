@@ -31,29 +31,6 @@ namespace TetrisMainWindow
             IsGameOver = false;
             cellSize = 35;
 
-            mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
-
-            _full_rows_list = new List<int>();
-
-            for (int i = 0; i < mainGrid.GetLength(0); i++)
-            {
-                for (int j = 0; j < mainGrid.GetLength(1); j++)
-                {
-                    Rectangle rec = new Rectangle
-                    {
-                        Stroke = new SolidColorBrush(Colors.White),
-                        StrokeThickness = 1,
-                        Visibility = Visibility.Visible
-                    };
-
-                    Grid.SetColumn(rec, i);
-                    Grid.SetRow(rec, j);
-                    cellGrid.Children.Add(rec);
-
-                    mainGrid[i, j] = new ElementaryCell() { rect = rec, IsFrozen = false, NeedsFreeze = false };
-                }
-            }
-
             if (File.Exists(highScoresFileName))
             {
                 byte[] data = File.ReadAllBytes(highScoresFileName);
@@ -100,13 +77,14 @@ namespace TetrisMainWindow
         //the highest score to be shown in the StatusBar
         private int _highScore;
         //the size of cell
-        private int _gridWidth = 20;
-        private int _gridHeight = 40;
+        private byte _gridWidth = 20;
+        private byte _gridHeight = 40;
         private TetrisUserControl currentFigure;
         private TetrisUserControl nextFigure;
         private TetrisUserControl beforeNextFigure;
         private bool _gameStarted;
         private bool _gamePaused;
+        private bool _gridInitialized = false;
         private readonly int cellSize;
         //keeps track of the score
         private int _score;
@@ -291,6 +269,33 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("AdditionalScoringInfo");
             }
         }
+        public string GameFieldSize 
+        {
+            get 
+            { 
+                return (string.Format("{0}✕{1}", _gridWidth, _gridHeight));
+            } 
+        }
+        public byte GridWidth
+        {
+            get {return _gridWidth; }
+            private set
+            {
+                _gridWidth = value;
+                NotifyPropertyChanged("GridWidth");
+                NotifyPropertyChanged("GameFieldSize");
+            }
+        }
+        public byte GridHeight
+        {
+            get { return _gridHeight; }
+            private set
+            {
+                _gridHeight = value;
+                NotifyPropertyChanged("GridHeight");
+                NotifyPropertyChanged("GameFieldSize");
+            }
+        }
         #endregion
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -397,6 +402,7 @@ namespace TetrisMainWindow
                 mainGrid[t.Item1, t.Item2].IsFrozen = true;
             }
 
+            _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
             foreach (int i in currentFigureCoordinates.Select(x => x.Item2).Where(y => y > 0).Distinct().OrderBy(y => y))
             {
                 int l = 0;
@@ -837,13 +843,16 @@ namespace TetrisMainWindow
                 overOrPauseText = "GAME OVER";
                 IsGamePaused = false;
             }
+            if (!_gridInitialized)
+            {
+                InitGrid();
+            }
             IsGameStarted = false;
             IsGameOver = false;
             ClearCellGrid();
             nextFigureCell.Children.Clear();
             figureBeforeTheNextCell.Children.Clear();
             DoNextFigure();
-            _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
             //Start the game
             IsGameStarted = true;
             startButtonText = "Restart";
@@ -868,7 +877,7 @@ namespace TetrisMainWindow
             _ = Keyboard.Focus(cellGrid);
         }
 
-        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ShowHighScores(object sender, MouseButtonEventArgs e)
         {
             highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
             HighScoresDialog hs = new HighScoresDialog(highestScores.Take(10));
@@ -894,7 +903,7 @@ namespace TetrisMainWindow
 
         private void MenuItemScores_Click(object sender, RoutedEventArgs e)
         {
-            TextBlock_MouseLeftButtonDown(sender, null);
+            ShowHighScores(sender, null);
         }
 
         private void PauseButton_Click(object sender, RoutedEventArgs e)
@@ -912,6 +921,53 @@ namespace TetrisMainWindow
                 _timer.Start();
             }
             IsGamePaused = !IsGamePaused;
+        }
+
+        private void GameFieldSize_Click(object sender, RoutedEventArgs e)
+        {
+            GameFieldSizeDialog dlg = new GameFieldSizeDialog(GridWidth, GridHeight);
+            bool? res = dlg.ShowDialog();
+            if (res != null && res.Value)
+            {
+                GridWidth = dlg.sz.width;
+                GridHeight = dlg.sz.height;
+            }
+        }
+
+        private void InitGrid()
+        {
+
+            mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
+
+            for (int i = 1; i <= _gridWidth; i++)
+            {
+                cellGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            }
+            for (int j = 1; j <= _gridHeight; j++)
+            {
+                cellGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            }
+
+            _full_rows_list = new List<int>();
+
+            for (int i = 0; i < mainGrid.GetLength(0); i++)
+            {
+                for (int j = 0; j < mainGrid.GetLength(1); j++)
+                {
+                    Rectangle rec = new Rectangle
+                    {
+                        Stroke = new SolidColorBrush(Colors.White),
+                        StrokeThickness = 1,
+                        Visibility = Visibility.Visible
+                    };
+
+                    Grid.SetColumn(rec, i);
+                    Grid.SetRow(rec, j);
+                    cellGrid.Children.Add(rec);
+
+                    mainGrid[i, j] = new ElementaryCell() { rect = rec, IsFrozen = false, NeedsFreeze = false };
+                }
+            }
         }
     }
 }
