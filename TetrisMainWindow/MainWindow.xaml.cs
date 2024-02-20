@@ -660,6 +660,7 @@ namespace TetrisMainWindow
         /// </summary>
         private void EndOfTheGame()
         {
+            _timer.Tick -= TimerTickerHandler;
             _timer.Stop();
 
             IsGameStarted = false;
