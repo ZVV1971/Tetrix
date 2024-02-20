@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using TetrisFigures.Interfaces;
@@ -14,20 +15,22 @@ namespace TetrisFigures.Dialogs
     {
         private int rotationAngle;
         private TetrisUserControl ctrl;
-        private DispatcherTimer tmr;
+        private readonly DispatcherTimer tmr;
         private double left;
         private double bottom;
-        private TextBlock tblk;
+        private readonly TextBlock tblk;
 
         public InfoDialog()
         {
             InitializeComponent();
             rotationAngle = 0;
             tmr = new DispatcherTimer() { Interval = TimeSpan.FromSeconds(2) };
-            tblk = new TextBlock();
-            tblk.Text = "Drops the figure ontop of the pile";
-            tblk.Foreground = new SolidColorBrush(Colors.White);
-            tblk.Visibility = Visibility.Hidden;
+            tblk = new TextBlock
+            {
+                Text = "Drops the figure ontop of the pile",
+                Foreground = new SolidColorBrush(Colors.White),
+                Visibility = Visibility.Hidden
+            };
         }
 
         private void Window_ContentRendered(object sender, EventArgs e)
@@ -39,10 +42,10 @@ namespace TetrisFigures.Dialogs
             Canvas.SetBottom(ctrl, ShowCase.ActualHeight / 2 - ctrl.Height / 2);
             left = Canvas.GetLeft(ctrl);
             bottom = Canvas.GetBottom(ctrl);
-            ShowCase.Children.Add(ctrl);
+            _ = ShowCase.Children.Add(ctrl);
             Canvas.SetBottom(tblk, 10);
             Canvas.SetLeft(tblk, ActualWidth / 2 - tblk.Width / 2);
-            ShowCase.Children.Add(tblk);
+            _ = ShowCase.Children.Add(tblk);
 
             tmr.Tick += delegate
             {
@@ -77,6 +80,30 @@ namespace TetrisFigures.Dialogs
         private void SpaceButton_Click(object sender, RoutedEventArgs e)
         {
             tblk.Visibility = Visibility.Visible;
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    UpButton_Click(sender, new RoutedEventArgs(e.RoutedEvent));
+                    break;
+                case Key.Down:
+                    DownButton_Click(sender, new RoutedEventArgs(e.RoutedEvent));
+                    break;
+                case Key.Left:
+                    LeftButton_Click(sender, new RoutedEventArgs(e.RoutedEvent));
+                    break;
+                case Key.Right:
+                    RightButton_Click(sender, new RoutedEventArgs(e.RoutedEvent));
+                    break;
+                case Key.Space:
+                    SpaceButton_Click(sender, new RoutedEventArgs(e.RoutedEvent));
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
