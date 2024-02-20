@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TetrisFigures.Dialogs"
         mc:Ignorable="d"
-        Title="InfoDialog" Height="400" Width="285" ResizeMode="NoResize" ContentRendered="Window_ContentRendered">
+        Title="InfoDialog" Height="400" Width="285" ResizeMode="NoResize" ContentRendered="Window_ContentRendered" KeyDown="Window_KeyDown">
     <Window.Resources>
         <Style TargetType="{x:Type Button}">
             <Setter Property="BorderBrush" Value="Black"/>
