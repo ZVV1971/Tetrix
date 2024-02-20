@@ -2,7 +2,7 @@ name: "Workflow for feature branches"
 
 on:
   push:
-    branches: [ "feature/*" ]
+    branches: [ "feature/*", "bug/*" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
