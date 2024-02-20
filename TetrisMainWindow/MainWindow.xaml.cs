@@ -696,7 +696,7 @@ namespace TetrisMainWindow
         /// </summary>
         private void HideFullRows()
         {
-            int k = _full_rows_list.Last();
+            int k = _full_rows_list.Max();
             int l = k - 1; //starting from the row next to the full one
             
             for (; k >= highestCell; k--, l--)
@@ -740,17 +740,14 @@ namespace TetrisMainWindow
                 mainGrid[i, dest_row].Reset();
             }
 
-            //Copy the source row into the destination one if the source is not NULL
-            if(source_row > highestCell)
+            //Copy the source row into the destination
+            for (int i = 0; i <= _gridWidth - 1; i++)
             {
-                for (int i = 0; i <= _gridWidth - 1; i++)
+                if (mainGrid[i, source_row].IsFrozen)
                 {
-                    if (mainGrid[i, source_row].IsFrozen)
-                    {
-                        mainGrid[i, dest_row].rect.Fill = mainGrid[i, source_row].rect.Fill;
-                        mainGrid[i, dest_row].rect.Visibility = Visibility.Visible;
-                        mainGrid[i, dest_row].IsFrozen = true;
-                    }
+                    mainGrid[i, dest_row].rect.Fill = mainGrid[i, source_row].rect.Fill;
+                    mainGrid[i, dest_row].rect.Visibility = Visibility.Visible;
+                    mainGrid[i, dest_row].IsFrozen = true;
                 }
             }
         }
