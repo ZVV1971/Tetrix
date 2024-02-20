@@ -76,21 +76,6 @@ namespace TetrisMainWindow
                 .ToArray();
         }
 
-        private void SetHighScores()
-        {
-            int i = 0;
-            try
-            {
-                i = highestScores.Where(y => y.Item5.Equals(GameFieldSize)).Max(x => x.Item2);
-                TopGamer = highestScores.Where(y => y.Item5.Equals(GameFieldSize)).First(x => x.Item2 == i).Item1;
-            }
-            catch
-            {
-                TopGamer = "";
-            }
-            HighestScore = i;
-        }
-
         private double _cellSizeForCanvas;
         private string _currentGamer;
         private string _topGamer;
@@ -130,28 +115,28 @@ namespace TetrisMainWindow
         //number of points added when a row is full
         private readonly int priceOfTheRow = 100;
         //initial timespan in Timer ticks
-        private long _initialTimeSpan =
+        private readonly long _initialTimeSpan =
 #if DEBUG
             2000000;
 #else
             1500000;
 #endif
         //percents of the timespan to decrease the intial (previous) one with
-        private int _percTimeSpanDecrease =
+        private readonly int _percTimeSpanDecrease =
 #if DEBUG
             10;
 #else
             15;
 #endif
         //rows to be filled for the first level
-        private int _initialRowsToFinish =
+        private readonly int _initialRowsToFinish =
 #if DEBUG
             1;
 #else
             10;
 #endif
         //_timer for down events
-        private DispatcherTimer _timer;
+        private readonly DispatcherTimer _timer;
         //holds the current version of the app
         private string _version;
         //indicator-switcher to let differentiate freezing timer events from moving ones
@@ -486,6 +471,9 @@ namespace TetrisMainWindow
             tmr.Start();
         }
 
+        /// <summary>
+        ///Starts animation on the additional info about full lines 
+        /// </summary>
         private void FireInfo()
         {
             DispatcherTimer tmr = new DispatcherTimer
@@ -615,9 +603,12 @@ namespace TetrisMainWindow
             Keyboard.Focus(cellGrid);
         }
 
+        /// <summary>
+        /// Process keyboard events
+        /// </summary>
         private void CellGrid_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!IsGameStarted | IsGamePaused) return;
+            if (!IsGameStarted | IsGamePaused) { return; }
 
             List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
             switch (e.Key)
@@ -677,17 +668,17 @@ namespace TetrisMainWindow
             {
                 GamerNameDialog inputDialog = new GamerNameDialog("Enter the name of the current gamer", "Unknown");
                 if (inputDialog.ShowDialog() == true)
+                {
                     if (!inputDialog.Answer.Trim().Equals(string.Empty))
-                        _currentGamer = inputDialog.Answer;
-                    else
-                        _currentGamer = "Unknown";
-                else
-                    _currentGamer = "Unknown";
+                    { _currentGamer = inputDialog.Answer; }
+                    else { _currentGamer = "Unknown"; }
+                }
+                else { _currentGamer = "Unknown"; }
             }
 
             highestScores.Add(new Tuple<string, int, int, DateTime, string>(_currentGamer.Trim(), _score, _level, DateTime.Now, GameFieldSize));
 
-            if(Score > HighestScore)
+            if (Score > HighestScore)
             {
                 HighestScore = Score;
                 TopGamer = _currentGamer;
@@ -709,7 +700,7 @@ namespace TetrisMainWindow
             
             for (; k >= highestCell; k--, l--)
             {
-                while (_full_rows_list.Contains(l)) l--;
+                while (_full_rows_list.Contains(l)) { l--; }
                 HandleGridRows(k, l);
             }
 
@@ -767,8 +758,6 @@ namespace TetrisMainWindow
         /// Timer event handler that defines whether to move the figure down
         /// or to process cells that need to be frozen
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void TimerTickerHandler(object sender, EventArgs e)
         {
             if (_event_interlacer++ % _interlace_factor == 0)
@@ -792,12 +781,15 @@ namespace TetrisMainWindow
             }
         }
 
+        /// <summary>
+        /// Freezes those cells that're marked and calls End of the game if it's detected
+        /// </summary>
         private void DoFreezing()
         {
             if (currentFigureCoordinates.Any(x => x.Item2 >= 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
             {
                 FreezeCurrentFigure();
-                if (_full_rows_list.Count > 0) HideFullRows();
+                if (_full_rows_list.Count > 0) { HideFullRows(); }
                 if (_end_of_the_game_indicator)
                 {
                     EndOfTheGame();
@@ -807,6 +799,10 @@ namespace TetrisMainWindow
             }
         }
 
+        /// <summary>
+        /// Returns the next postion for the current figure
+        /// </summary>
+        /// <returns></returns>
         private List<Tuple<int, int>> GetNextFigurePosition()
         {
             List<Tuple<int, int>>  newPos = new List<Tuple<int, int>>();
@@ -818,6 +814,9 @@ namespace TetrisMainWindow
             return newPos;
         }
 
+        /// <summary>
+        /// Defines and calls the actions depedning on the <paramref name="nextPos"/> next position of the current figure
+        /// </summary>
         private void ProcessMovement(List<Tuple<int, int>> nextPos)
         {
             if (nextPos.Count > 0)
@@ -855,6 +854,9 @@ namespace TetrisMainWindow
             }
         }
 
+        /// <summary>
+        /// Starts or re-starts the game, calling necessary changes and cleanups meanwhile
+        /// </summary>
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
 
@@ -901,6 +903,9 @@ namespace TetrisMainWindow
             _ = Keyboard.Focus(cellGrid);
         }
 
+        /// <summary>
+        /// Shows the high score window for the current game field size
+        /// </summary
         private void ShowHighScores(object sender, MouseButtonEventArgs e)
         {
             highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
@@ -908,17 +913,24 @@ namespace TetrisMainWindow
             _ = hs.ShowDialog();
         }
 
+        /// <summary>
+        /// Attempts to store the score results in the file
+        /// </summary>
         private void Window_Closed(object sender, EventArgs e)
         {
-            using (FileStream fs = new FileStream(highScoresFileName, FileMode.OpenOrCreate))
+            try
             {
-                List<Tuple<string, int, int, DateTime, string>> restScores = highestScores.Where(x => !x.Item5.Equals(GameFieldSize)).ToList();
-                restScores.AddRange(highestScores.Where(x => x.Item5.Equals(GameFieldSize)).Take(10));
+                using (FileStream fs = new FileStream(highScoresFileName, FileMode.OpenOrCreate))
+                {
+                    List<Tuple<string, int, int, DateTime, string>> restScores = highestScores.Where(x => !x.Item5.Equals(GameFieldSize)).ToList();
+                    restScores.AddRange(highestScores.Where(x => x.Item5.Equals(GameFieldSize)).Take(10));
 
-                highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
-                byte[] data = ObjectSerialize.Serialize(restScores);
-                fs.Write(data, 0, data.Length);
+                    highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
+                    byte[] data = ObjectSerialize.Serialize(restScores);
+                    fs.Write(data, 0, data.Length);
+                }
             }
+            catch { }
         }
 
         private void MenuItemInfo_Click(object sender, RoutedEventArgs e)
@@ -932,6 +944,9 @@ namespace TetrisMainWindow
             ShowHighScores(sender, null);
         }
 
+        /// <summary>
+        /// Pauses / Resumes the current game
+        /// </summary>
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             if (!IsGamePaused)
@@ -949,6 +964,9 @@ namespace TetrisMainWindow
             IsGamePaused = !IsGamePaused;
         }
 
+        /// <summary>
+        /// Calls game field size dialog and does corresponding changes if it succeeds
+        /// </summary>
         private void GameFieldSize_Click(object sender, RoutedEventArgs e)
         {
             GameFieldSizeDialog dlg = new GameFieldSizeDialog(GridWidth, GridHeight);
@@ -962,9 +980,12 @@ namespace TetrisMainWindow
             }
         }
 
+        /// <summary>
+        /// Initiates a new main grid if it 'hasn't been initiated or the game field size got changed
+        /// </summary>
         private void InitGrid()
         {
-             if (cellGrid.RowDefinitions.Count != _gridHeight)
+            if (cellGrid.RowDefinitions.Count != _gridHeight)
             {
 
                 mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
@@ -999,12 +1020,30 @@ namespace TetrisMainWindow
 
                         Grid.SetColumn(rec, i);
                         Grid.SetRow(rec, j);
-                        cellGrid.Children.Add(rec);
+                        _ = cellGrid.Children.Add(rec);
 
                         mainGrid[i, j] = new ElementaryCell() { rect = rec, IsFrozen = false, NeedsFreeze = false };
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Set high scores info for status bar
+        /// </summary>
+        private void SetHighScores()
+        {
+            int i = 0;
+            try
+            {
+                i = highestScores.Where(y => y.Item5.Equals(GameFieldSize)).Max(x => x.Item2);
+                TopGamer = highestScores.Where(y => y.Item5.Equals(GameFieldSize)).First(x => x.Item2 == i).Item1;
+            }
+            catch
+            {
+                TopGamer = "";
+            }
+            HighestScore = i;
         }
     }
 }
