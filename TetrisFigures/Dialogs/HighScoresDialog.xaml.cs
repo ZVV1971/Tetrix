@@ -10,19 +10,19 @@ namespace TetrisFigures.Dialogs
     /// </summary>
     public partial class HighScoresDialog : Window
     {
-        public HighScoresDialog(IEnumerable<Tuple<string, int, int, DateTime>> l)
+        public HighScoresDialog(IEnumerable<Tuple<string, int, int, DateTime, string>> l)
         {
             InitializeComponent();
             DataContext = this;
 
             int k = 0;
-            foreach (Tuple<string, int, int, DateTime> item in l)
+            foreach (Tuple<string, int, int, DateTime, string> item in l)
             {
                 if (++k > 10) break;
-                TextBlock tg = (TextBlock)this.FindName("Gamer" + k.ToString());
+                TextBlock tg = (TextBlock)FindName("Gamer" + k.ToString());
                 tg.Text = item.Item1;
-                tg.ToolTip = $"Level={item.Item3}; {item.Item4}";
-                TextBlock tv = (TextBlock)this.FindName("Score" + k.ToString());
+                tg.ToolTip = $"Level={item.Item3}; {item.Item4}; {item.Item5}";
+                TextBlock tv = (TextBlock)FindName("Score" + k.ToString());
                 tv.Text = item.Item2.ToString();
             }
         }
