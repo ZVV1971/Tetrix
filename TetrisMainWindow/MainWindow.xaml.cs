@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -533,7 +534,11 @@ namespace TetrisMainWindow
             {
                 currentFigure = GetNewFigure();
                 currentFigure.ChangeSize((int)(cellSize * 0.75));
-                nextFigure = GetNewFigure();
+                do
+                {
+                    nextFigure = GetNewFigure();
+                }
+                while (currentFigure.GetType().Equals(nextFigure.GetType()));
                 nextFigure.ChangeSize((int)(cellSize * 0.75));
             }
             else
@@ -545,7 +550,11 @@ namespace TetrisMainWindow
             }
 
             figureBeforeTheNextCell.Children.Clear();
-            beforeNextFigure = GetNewFigure();
+            do
+            {
+                beforeNextFigure = GetNewFigure();
+            }
+            while (beforeNextFigure.GetType().Equals(nextFigure.GetType()));
             beforeNextFigure.ChangeSize((int)(cellSize * 0.75));
 
             Canvas.SetLeft(nextFigure, nextFigureCell.ActualWidth / 2 - nextFigure.Width / 2);
@@ -578,10 +587,15 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private TetrisUserControl GetNewFigure()
         {
+            int pInt;
+            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
+            {
+                byte[] rno = new byte[5];
+                rg.GetBytes(rno);
+                int randomvalue = BitConverter.ToInt32(rno, 0);
+                pInt = Math.Abs(randomvalue % figureTypes.Length);
+            }
             TetrisUserControl fig;
-            Random p = new Random();
-            int pInt = p.Next(0, figureTypes.Length);
-
             Type objectType = Type.GetType(figureTypes[pInt]);
             fig = (TetrisUserControl)Activator.CreateInstance(objectType);
 
