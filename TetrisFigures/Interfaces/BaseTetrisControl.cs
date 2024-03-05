@@ -11,12 +11,12 @@ namespace TetrisFigures.Interfaces
     {
         public virtual void ChangeSize(int size) { }
 
-        public virtual int GetPositionNumber(List<Tuple<int, int>> tuples)
+        public virtual int GetPositionNumber(IList<Tuple<int, int>> tuples)
         {
             return 0;
         }
 
-        public virtual List<Tuple<int, int>> Rotate(List<Tuple<int, int>> oldpos)
+        public virtual IList<Tuple<int, int>> Rotate(IList<Tuple<int, int>> oldpos)
         {
             if (TransformationMatrix != null)
             {
@@ -32,7 +32,10 @@ namespace TetrisFigures.Interfaces
 
                 return newPos;
             }
-            else return oldpos;
+            else
+            {
+                return oldpos;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -51,13 +54,13 @@ namespace TetrisFigures.Interfaces
             set { _color = value; NotifyPropertyChanged("color"); }
         }
 
-        public virtual List<Tuple<int, int>[]> TransformationMatrix
+        public virtual IList<Tuple<int, int>[]> TransformationMatrix
         {
             get;
             set;
         }
 
-        public virtual List<Tuple<int, int>> InitialPosition
+        public virtual IList<Tuple<int, int>> InitialPosition
         {
             get;
             set;

@@ -19,21 +19,21 @@ namespace TetrisTests.Figures.LeftHook
 
         [TestCaseSource(nameof(LeftHookPositions)), Description("Test how LeftHook figure defines positions")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftHookPositions(List<Tuple<int, int>> pos, int res)
+        public void TestLeftHookPositions(IList<Tuple<int, int>> pos, int res)
         {
             Assert.AreEqual(res, ctrl.GetPositionNumber(pos));
         }
 
         [TestCaseSource(nameof(LeftHookPositions)), Description("Test that LeftHook figure rotated from one to another position gets unequal position numbers")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftHookRotation_OldPos_nonEqual_NewPos(List<Tuple<int, int>> pos, int d)
+        public void TestLeftHookRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }
 
         [TestCaseSource(nameof(LeftHookPositions)), Description("Test that LeftHook figure rotated from one to another positions get position numbers deffering in 1 or 3")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftHookRotation_OldPos_NewPos_diffc_in_1(List<Tuple<int, int>> pos, int d)
+        public void TestLeftHookRotation_OldPos_NewPos_diffc_in_1(IList<Tuple<int, int>> pos, int d)
         {
             int posnum = ctrl.GetPositionNumber(pos);
             int res = posnum - ctrl.GetPositionNumber(ctrl.Rotate(pos));
@@ -46,14 +46,14 @@ namespace TetrisTests.Figures.LeftHook
 
         [TestCaseSource(nameof(LeftHookPositions)), Description("Test that LeftHook figure being four times rotated returns in the same position")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftHookRotation_DoubleRotation_theSame(List<Tuple<int, int>> pos, int d)
+        public void TestLeftHookRotation_DoubleRotation_theSame(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(pos))))));
         }
 
         [TestCaseSource(nameof(LeftHookPositions)), Description("Test that LeftHook figure being rotated returns in the next position")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftHookRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        public void TestLeftHookRotation_SingleRotation_theNext(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual((d + 1) % LeftHookPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }

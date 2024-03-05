@@ -19,21 +19,21 @@ namespace TetrisTests.Figures.Cap
 
         [TestCaseSource(nameof(CapPositions)), Description("Test how Cap figure defines positions")]
         [Apartment(ApartmentState.STA)]
-        public void TestCapPositions(List<Tuple<int, int>> pos, int res)
+        public void TestCapPositions(IList<Tuple<int, int>> pos, int res)
         {
             Assert.AreEqual(res, ctrl.GetPositionNumber(pos));
         }
 
         [TestCaseSource(nameof(CapPositions)), Description("Test that Cap figure rotated from one to another position gets unequal position numbers")]
         [Apartment(ApartmentState.STA)]
-        public void TestCapRotation_OldPos_nonEqual_NewPos(List<Tuple<int, int>> pos, int d)
+        public void TestCapRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }
 
         [TestCaseSource(nameof(CapPositions)), Description("Test that Cap figure rotated from one to another positions get position numbers deffering in 1 or 3")]
         [Apartment(ApartmentState.STA)]
-        public void TestCapRotation_OldPos_NewPos_diffc_in_1(List<Tuple<int, int>> pos, int d)
+        public void TestCapRotation_OldPos_NewPos_diffc_in_1(IList<Tuple<int, int>> pos, int d)
         {
             int posnum = ctrl.GetPositionNumber(pos);
             int res = posnum - ctrl.GetPositionNumber(ctrl.Rotate(pos));
@@ -46,14 +46,14 @@ namespace TetrisTests.Figures.Cap
 
         [TestCaseSource(nameof(CapPositions)), Description("Test that Cap figure being four times rotated returns in the same position")]
         [Apartment(ApartmentState.STA)]
-        public void TestCapRotation_DoubleRotation_theSame(List<Tuple<int, int>> pos, int d)
+        public void TestCapRotation_DoubleRotation_theSame(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(ctrl.Rotate(pos))))));
         }
 
         [TestCaseSource(nameof(CapPositions)), Description("Test that Cap figure being rotated returns in the next position")]
         [Apartment(ApartmentState.STA)]
-        public void TestCapRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        public void TestCapRotation_SingleRotation_theNext(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual((d + 1) % CapPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }

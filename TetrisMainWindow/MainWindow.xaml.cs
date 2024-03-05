@@ -334,7 +334,7 @@ namespace TetrisMainWindow
         /// </summary>
         /// <param name="newPosition">The position that the current figure should take next</param>
         /// <returns></returns>
-        private MovementOutcomes IsMovementPossible(List<Tuple<int, int>> newPosition)
+        private MovementOutcomes IsMovementPossible(IList<Tuple<int, int>> newPosition)
         {
             //check whether the new position comes outside the playground borders
             //left, right sides and bottom
@@ -372,7 +372,7 @@ namespace TetrisMainWindow
         /// </summary>
         /// <param name="c">Is used to take the filling color for rectangles</param>
         /// <param name="newPos">Provides new positions of the figure</param>
-        private void DrawFigure(TetrisUserControl c, List<Tuple<int, int>> newPos, bool forced = false)
+        private void DrawFigure(TetrisUserControl c, IList<Tuple<int, int>> newPos, bool forced = false)
         {
             if (!newPos.Equals(currentFigureCoordinates) || forced)
             {
@@ -394,7 +394,7 @@ namespace TetrisMainWindow
                     }
                 }
 
-                currentFigureCoordinates = newPos;
+                currentFigureCoordinates = newPos.ToList();
             }
         }
 
@@ -628,7 +628,7 @@ namespace TetrisMainWindow
             switch (e.Key)
             {
                 case Key.Up:
-                    newPos = currentFigure.Rotate(currentFigureCoordinates);
+                    newPos = currentFigure.Rotate(currentFigureCoordinates).ToList();
                     break;
                 case Key.Down:
                     newPos = GetNextFigurePosition();
@@ -829,7 +829,7 @@ namespace TetrisMainWindow
         /// <summary>
         /// Defines and calls the actions depedning on the <paramref name="nextPos"/> next position of the current figure
         /// </summary>
-        private void ProcessMovement(List<Tuple<int, int>> nextPos)
+        private void ProcessMovement(IList<Tuple<int, int>> nextPos)
         {
             if (nextPos.Count > 0)
             {

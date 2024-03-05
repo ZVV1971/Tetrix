@@ -19,7 +19,7 @@ namespace TetrisTests.Figures.Square
 
         [TestCaseSource(nameof(SquarePositions)), Description("Test whether Square rotation gives the original Square position")]
         [Apartment(ApartmentState.STA)]
-        public void TestSquareRotation(List<Tuple<int, int>> pos)
+        public void TestSquareRotation(IList<Tuple<int, int>> pos)
         {
             Assert.AreEqual(pos, ctrl.Rotate(pos));
         }

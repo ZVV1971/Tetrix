@@ -65,7 +65,7 @@ namespace TetrisFigures
             CapControlWindow.Height = size * 2;
         }
 
-        public override int GetPositionNumber(List<Tuple<int, int>> tuples)
+        public override int GetPositionNumber(IList<Tuple<int, int>> tuples)
         {
             if (tuples.Take(3).All(x => x.Item2 == tuples[0].Item2))
             //positions #0 and #2 -- 0 and 180 degrees

@@ -19,7 +19,7 @@ namespace TetrisTests.Figures.Cross
 
         [TestCaseSource(nameof(CrossPositions)), Description("Test whether Cross rotation gives the original Cross position")]
         [Apartment(ApartmentState.STA)]
-        public void TestCrossRotation(List<Tuple<int, int>> pos)
+        public void TestCrossRotation(IList<Tuple<int, int>> pos)
         {
             Assert.AreEqual(pos, ctrl.Rotate(pos));
         }

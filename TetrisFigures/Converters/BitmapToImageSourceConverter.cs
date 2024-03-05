@@ -12,20 +12,21 @@ namespace TetrisFigures.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var bitmap = value as Bitmap;
-            if (bitmap == null)
+            if (!(value is Bitmap bitmap))
+            {
                 throw new ArgumentNullException("bitmap");
+            }
 
-            var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 
-            var bitmapData = bitmap.LockBits(
+            BitmapData bitmapData = bitmap.LockBits(
                 rect,
                 ImageLockMode.ReadWrite,
                 System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             try
             {
-                var size = (rect.Width * rect.Height) * 4;
+                int size = rect.Width * rect.Height * 4;
 
                 return BitmapSource.Create(
                     bitmap.Width,
