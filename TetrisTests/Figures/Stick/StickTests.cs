@@ -19,35 +19,35 @@ namespace TetrisTests.Figures.Stick
 
         [TestCaseSource(nameof(StickPositions)), Description("Test how Stick figure defines horizontal and vertical positions")]
         [Apartment(ApartmentState.STA)]
-        public void TestStickPositions(List<Tuple<int, int>> pos, int res)
+        public void TestStickPositions(IList<Tuple<int, int>> pos, int res)
         {
             Assert.AreEqual(res, ctrl.GetPositionNumber(pos));
         }
 
         [TestCaseSource(nameof(StickPositions)), Description("Test that Stick figure rotated from one to another position gets unequal position numbers")]
         [Apartment(ApartmentState.STA)]
-        public void TestStickRotation_OldPos_nonEqual_NewPos(List<Tuple<int, int>> pos, int d)
+        public void TestStickRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }
 
         [TestCaseSource(nameof(StickPositions)), Description("Test that Stick figure rotated from one to another positions get position numbers deffering in 1")]
         [Apartment(ApartmentState.STA)]
-        public void TestStickRotation_OldPos_NewPos_diffc_in_1(List<Tuple<int, int>> pos, int d)
+        public void TestStickRotation_OldPos_NewPos_diffc_in_1(IList<Tuple<int, int>> pos, int d)
         {
             Assert.That(Math.Abs(ctrl.GetPositionNumber(pos) - ctrl.GetPositionNumber(ctrl.Rotate(pos))) == 1);
         }
 
         [TestCaseSource(nameof(StickPositions)), Description("Test that Stick figure being twice rotated returns in the same position")]
         [Apartment(ApartmentState.STA)]
-        public void TestStickRotation_DoubleRotation_theSame(List<Tuple<int, int>> pos, int d)
+        public void TestStickRotation_DoubleRotation_theSame(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(pos))));
         }
 
         [TestCaseSource(nameof(StickPositions)), Description("Test that Stick figure being rotated returns in the next position")]
         [Apartment(ApartmentState.STA)]
-        public void TestStickRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        public void TestStickRotation_SingleRotation_theNext(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual((d + 1) % StickPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }

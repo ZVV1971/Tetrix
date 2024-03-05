@@ -19,35 +19,35 @@ namespace TetrisTests.Figures.LeftSnake
 
         [TestCaseSource(nameof(LeftSnakePositions)), Description("Test how LeftSnake figure defines positions")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftSnakePositions(List<Tuple<int, int>> pos, int res)
+        public void TestLeftSnakePositions(IList<Tuple<int, int>> pos, int res)
         {
             Assert.AreEqual(res, ctrl.GetPositionNumber(pos));
         }
 
         [TestCaseSource(nameof(LeftSnakePositions)), Description("Test that LeftSnake figure rotated from one to another position gets unequal position numbers")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftSnakeRotation_OldPos_nonEqual_NewPos(List<Tuple<int, int>> pos, int d)
+        public void TestLeftSnakeRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }
 
         [TestCaseSource(nameof(LeftSnakePositions)), Description("Test that LeftSnake figure rotated from one to another positions get position numbers deffering in 1")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftSnakeRotation_OldPos_NewPos_diffc_in_1(List<Tuple<int, int>> pos, int d)
+        public void TestLeftSnakeRotation_OldPos_NewPos_diffc_in_1(IList<Tuple<int, int>> pos, int d)
         {
             Assert.That(Math.Abs(ctrl.GetPositionNumber(pos) - ctrl.GetPositionNumber(ctrl.Rotate(pos))) == 1);
         }
 
         [TestCaseSource(nameof(LeftSnakePositions)), Description("Test that LeftSnake figure being twice rotated returns in the same position")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftSnakeRotation_DoubleRotation_theSame(List<Tuple<int, int>> pos, int d)
+        public void TestLeftSnakeRotation_DoubleRotation_theSame(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(pos))));
         }
 
         [TestCaseSource(nameof(LeftSnakePositions)), Description("Test that LeftSnake figure being rotated returns in the next position")]
         [Apartment(ApartmentState.STA)]
-        public void TestLeftSnakeRotation_SingleRotation_theNext(List<Tuple<int, int>> pos, int d)
+        public void TestLeftSnakeRotation_SingleRotation_theNext(IList<Tuple<int, int>> pos, int d)
         {
             Assert.AreEqual((d + 1) % LeftSnakePositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }

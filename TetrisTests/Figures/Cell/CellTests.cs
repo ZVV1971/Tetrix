@@ -19,7 +19,7 @@ namespace TetrisTests.Figures.Cell
 
         [TestCaseSource(nameof(CellPositions)), Description("Test whether Cell rotation gives the original Cell position")]
         [Apartment(ApartmentState.STA)]
-        public void TestCellRotation(List<Tuple<int, int>> pos)
+        public void TestCellRotation(IList<Tuple<int, int>> pos)
         {
             Assert.AreEqual(pos, ctrl.Rotate(pos));
         }

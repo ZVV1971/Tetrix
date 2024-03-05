@@ -38,7 +38,7 @@ namespace TetrisFigures.Dialogs
 
         private void SaveCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = sz != null ? !sz.HasErrors : false;
+            e.CanExecute = sz != null && !sz.HasErrors;
         }
     }
 }

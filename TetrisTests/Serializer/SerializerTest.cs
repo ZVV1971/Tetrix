@@ -7,7 +7,7 @@ namespace TetrisTests.Serializer
 {
     internal class SerializerTest
     {
-        List<Tuple<string, int, int, DateTime>> list;
+        private IList<Tuple<string, int, int, DateTime>> list;
 
         [SetUp]
         public void Setup()
@@ -19,8 +19,8 @@ namespace TetrisTests.Serializer
         [TestCase, Description("Test whether Serialization of List of Tuples works")]
         public void TestSerializeListOfTuples()
         {
-            var d = ObjectSerialize.Serialize(list);
-            var c = ObjectSerialize.DeSerialize(d);
+            byte[] d = ObjectSerialize.Serialize(list);
+            object c = ObjectSerialize.DeSerialize(d);
             Assert.AreEqual(list, c);
         }
     }

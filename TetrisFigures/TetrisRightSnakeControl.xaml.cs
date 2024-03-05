@@ -45,7 +45,7 @@ namespace TetrisFigures
             RightSnakeControlWindow.Height = size * 2;
         }
 
-        public override int GetPositionNumber(List<Tuple<int, int>> tuples)
+        public override int GetPositionNumber(IList<Tuple<int, int>> tuples)
         {
             //horizontal placement
             if (tuples[0].Item2 == tuples[1].Item2)

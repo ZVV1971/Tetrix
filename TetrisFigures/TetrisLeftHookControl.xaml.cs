@@ -60,7 +60,7 @@ namespace TetrisFigures
             LeftHookControlWindow.Height = size * 2;
         }
 
-        public override int GetPositionNumber(List<Tuple<int, int>> tuples)
+        public override int GetPositionNumber(IList<Tuple<int, int>> tuples)
         {
             if (tuples.Skip(1).All(x => x.Item2 == tuples[1].Item2))
             //positions #0 and #2 -- 0 and 180 degrees
