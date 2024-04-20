@@ -11,6 +11,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:MultiBoolToVisibilityConverter x:Key="MultiBoolToVis"/>
+        <conv:StringToVisibilityConverter x:Key="StrToVis" />
         <Style TargetType="MenuItem">
             <Setter Property="FontFamily" Value ="Arial"/>
             <Setter Property="FontSize" Value="14"/>
@@ -158,6 +159,10 @@
                 <TextBlock FontSize="28" Style="{StaticResource GeneralStyle_tb}"
                        Text="{Binding Path=pauseButtonText}"/>
             </Button>
+            <StackPanel KeyboardNavigation.TabNavigation="None" Orientation="Horizontal" ToolTip="The current windows principal">
+                <TextBlock Text="Current player:" Visibility="{Binding CurrentGamer, Converter={StaticResource StrToVis}}"/>
+                <TextBlock Text="{Binding Path=CurrentGamer}" Visibility="{Binding CurrentGamer, Converter={StaticResource StrToVis}}"/>
+            </StackPanel>
         </StackPanel>
         <StatusBar Grid.Row="11" Grid.ColumnSpan="5" Grid.Column="0">
             <StatusBar.ItemsPanel>

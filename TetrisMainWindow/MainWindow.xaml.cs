@@ -15,6 +15,7 @@ using TetrisFigures.Auxiliary;
 using TetrisFigures.Dialogs;
 using TetrisFigures.Helper;
 using TetrisFigures.Interfaces;
+using System.Security.Principal;
 
 namespace TetrisMainWindow
 {
@@ -75,6 +76,8 @@ namespace TetrisMainWindow
                 .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
                 .Select(x => x.FullName + ", TetrisFigures")
                 .ToArray();
+
+            CurrentGamer = WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
         }
 
         private double _cellSizeForCanvas;
@@ -159,6 +162,15 @@ namespace TetrisMainWindow
         //holds the typenames of all the figures
         private readonly string[] figureTypes;
         #region Properties
+        public string CurrentGamer
+        {
+            get { return _currentGamer; }
+            private set
+            {
+                _currentGamer = value;
+                NotifyPropertyChanged("CurrentGamer");
+            }
+        }
         public long Speed => _timer.Interval.Ticks;
         public string TopGamer
         {
@@ -337,8 +349,7 @@ namespace TetrisMainWindow
         private MovementOutcomes IsMovementPossible(IList<Tuple<int, int>> newPosition)
         {
             //check whether the new position comes outside the playground borders
-            //left, right sides and bottom
-            //or overlaps the pile
+            //left, right sides and bottom or overlaps the pile
             if (newPosition.Where(x => x.Item2 >= 0).Any(y => y.Item1 < 0 || y.Item1 > (_gridWidth - 1) || y.Item2 > (_gridHeight - 1) || mainGrid[y.Item1, y.Item2].IsFrozen))
             {
                 return MovementOutcomes.Impossible;
@@ -346,10 +357,9 @@ namespace TetrisMainWindow
 
             foreach (Tuple<int, int> t in newPosition)
             {
-            //check whether the new postion would touch the upper layer of the pile 
-            //or the bottom
-            //and return either End of the Play if any of the cells is on the first line
-            //or NeedsFreezing otherwise
+                //check whether the new postion would touch the upper layer of the pile 
+                //or the bottom and return either End of the Play if any of the cells is
+                //on the first line or NeedsFreezing otherwise
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
                 {
                     if (newPosition.Any((x) => x.Item2 <= 0))
@@ -525,7 +535,7 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        /// Cahnges the figures from Next->Current & before the Next -> Next
+        /// Changes the figures from Next->Current & before the Next -> Next
         /// request the new figures if required
         /// </summary>
         private void GetNextFigure()
@@ -679,24 +689,13 @@ namespace TetrisMainWindow
 
             IsGameStarted = false;
             IsGameOver = true;
-            if (_currentGamer is null || _currentGamer.Equals(string.Empty))
-            {
-                GamerNameDialog inputDialog = new GamerNameDialog("Enter the name of the current gamer", "Unknown");
-                if (inputDialog.ShowDialog() == true)
-                {
-                    if (!inputDialog.Answer.Trim().Equals(string.Empty))
-                    { _currentGamer = inputDialog.Answer; }
-                    else { _currentGamer = "Unknown"; }
-                }
-                else { _currentGamer = "Unknown"; }
-            }
 
-            highestScores.Add(new Tuple<string, int, int, DateTime, string>(_currentGamer.Trim(), _score, _level, DateTime.Now, GameFieldSize));
+            highestScores.Add(new Tuple<string, int, int, DateTime, string>(CurrentGamer.Trim(), _score, _level, DateTime.Now, GameFieldSize));
 
             if (Score > HighestScore)
             {
                 HighestScore = Score;
-                TopGamer = _currentGamer;
+                TopGamer = CurrentGamer;
             }
 
             pnMenuPanel.IsEnabled = true;
