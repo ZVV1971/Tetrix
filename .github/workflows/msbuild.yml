@@ -30,6 +30,7 @@ jobs:
       with:
         fetch-depth: 0
         persist-credentials: false
+        set-safe-directory: false
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
