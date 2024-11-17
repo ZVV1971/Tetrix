@@ -78,6 +78,9 @@
     <Compile Include="TetrisCapControl.xaml.cs">
       <DependentUpon>TetrisCapControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TetrisDonutControl.xaml.cs">
+      <DependentUpon>TetrisDonutControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TetrisCrossControl.xaml.cs">
       <DependentUpon>TetrisCrossControl.xaml</DependentUpon>
     </Compile>
@@ -130,6 +133,10 @@
       <DependentUpon>TetrisCellControl.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TetrisDonutControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="TetrisCrossControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
