@@ -50,6 +50,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auxiliary\ComplexityAttribute.cs" />
     <Compile Include="Auxiliary\Enums.cs" />
     <Compile Include="Auxiliary\GameGridSize.cs" />
     <Compile Include="Auxiliary\ScoreInfoControl.xaml.cs">

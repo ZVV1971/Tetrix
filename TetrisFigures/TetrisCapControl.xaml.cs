@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TetrisFigures.Auxiliary;
 using TetrisFigures.Interfaces;
 
 namespace TetrisFigures
@@ -8,6 +9,7 @@ namespace TetrisFigures
     /// <summary>
     /// Interaction logic for TetrisCapControl.xaml
     /// </summary>
+    [Complexity(Complexity = GameComplexity.Average)]
     public partial class TetrisCapControl : TetrisUserControl
     {
         public TetrisCapControl()

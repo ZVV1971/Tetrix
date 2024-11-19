@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TetrisFigures.Auxiliary;
 using TetrisFigures.Interfaces;
 
 namespace TetrisFigures
@@ -7,6 +8,7 @@ namespace TetrisFigures
     /// <summary>
     /// Interaction logic for TetrisPunchedCrossControl.xaml
     /// </summary>
+    [Complexity(Complexity = GameComplexity.Hard)]
     public partial class TetrisPunchedCrossControl : TetrisUserControl
     {
         public TetrisPunchedCrossControl()

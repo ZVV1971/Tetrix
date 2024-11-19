@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TetrisFigures.Auxiliary;
 using TetrisFigures.Interfaces;
 
 namespace TetrisFigures
@@ -8,6 +9,7 @@ namespace TetrisFigures
     /// <summary>
     /// Interaction logic for TetrisRightHookControl.xaml
     /// </summary>
+    [Complexity(Complexity = GameComplexity.Easy)]
     public partial class TetrisRightHookControl : TetrisUserControl
     {
         public TetrisRightHookControl()
