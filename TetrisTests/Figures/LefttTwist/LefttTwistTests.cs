@@ -1,0 +1,85 @@
+﻿using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using TetrisFigures.Interfaces;
+using TetrisFigures;
+using System.Threading;
+
+namespace TetrisTests.Figures.LeftTwist
+{
+    internal class PositionTests
+    {
+        public TetrisUserControl ctrl;
+
+        [SetUp]
+        public void Setup()
+        {
+            ctrl = new TetrisLeftTwistControl();
+        }
+
+        [TestCaseSource(nameof(LeftTwistPositions)), Description("Test how LeftTwist figure defines positions")]
+        [Apartment(ApartmentState.STA)]
+        public void TestLeftTwistPositions(IList<Tuple<int, int>> pos, int res)
+        {
+            Assert.AreEqual(res, ctrl.GetPositionNumber(pos));
+        }
+
+        [TestCaseSource(nameof(LeftTwistPositions)), Description("Test that LeftTwist figure rotated from one to another position gets unequal position numbers")]
+        [Apartment(ApartmentState.STA)]
+        public void TestLeftTwistRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
+        }
+
+        [TestCaseSource(nameof(LeftTwistPositions)), Description("Test that LeftTwist figure rotated from one to another positions get position numbers deffering in 1")]
+        [Apartment(ApartmentState.STA)]
+        public void TestLeftTwistRotation_OldPos_NewPos_diffc_in_1(IList<Tuple<int, int>> pos, int d)
+        {
+            Assert.That(Math.Abs(ctrl.GetPositionNumber(pos) - ctrl.GetPositionNumber(ctrl.Rotate(pos))) == 1);
+        }
+
+        [TestCaseSource(nameof(LeftTwistPositions)), Description("Test that LeftTwist figure being twice rotated returns in the same position")]
+        [Apartment(ApartmentState.STA)]
+        public void TestLeftTwistRotation_DoubleRotation_theSame(IList<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(ctrl.Rotate(pos))));
+        }
+
+        [TestCaseSource(nameof(LeftTwistPositions)), Description("Test that LeftTwist figure being rotated returns in the next position")]
+        [Apartment(ApartmentState.STA)]
+        public void TestLeftTwistRotation_SingleRotation_theNext(IList<Tuple<int, int>> pos, int d)
+        {
+            Assert.AreEqual((d + 1) % LeftTwistPositions.Length, ctrl.GetPositionNumber(ctrl.Rotate(pos)));
+        }
+
+        public static object[] LeftTwistPositions =
+        {
+            //Initial position #0
+            new object[]
+            {
+                new List<Tuple<int, int>>()
+                    {
+                    new Tuple<int, int>(1, 1),
+                    new Tuple<int, int>(1, 2),
+                    new Tuple<int, int>(2, 2),
+                    new Tuple<int, int>(3, 2),
+                    new Tuple<int, int>(3, 3)
+                    },
+                    0
+            },
+            //Vertical position #1
+            new object[]
+            {
+                new List<Tuple<int, int>>()
+                    {
+                    new Tuple<int, int>(3, 1),
+                    new Tuple<int, int>(2, 1),
+                    new Tuple<int, int>(2, 2),
+                    new Tuple<int, int>(2, 3),
+                    new Tuple<int, int>(1, 3)
+                    },
+                    1
+            }
+        };
+    }
+}
