@@ -102,6 +102,9 @@
     <Compile Include="TetrisRightHookControl.xaml.cs">
       <DependentUpon>TetrisRightHookControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TetrisLeftTwistControl.xaml.cs">
+      <DependentUpon>TetrisLeftTwistControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TetrisRightTwistControl.xaml.cs">
       <DependentUpon>TetrisRightTwistControl.xaml</DependentUpon>
     </Compile>
@@ -171,6 +174,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="TetrisRightHookControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="TetrisLeftTwistControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
