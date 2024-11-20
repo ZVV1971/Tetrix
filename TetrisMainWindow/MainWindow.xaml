@@ -12,6 +12,9 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:MultiBoolToVisibilityConverter x:Key="MultiBoolToVis"/>
         <conv:StringToVisibilityConverter x:Key="StrToVis" />
+        <conv:GameLevelEasyToBoolConverters x:Key="GLEasyToBool"/>
+        <conv:GameLevelAverageToBoolConverters x:Key="GLAvToBool" />
+        <conv:GameLevelHardToBoolConverters x:Key="GLHardToBool" />
         <Style TargetType="TextBlock" x:Key="GeneralStyle_tb">
             <Setter Property="FontSize" Value="19"/>
             <Setter Property="FontWeight" Value="DemiBold"/>
@@ -165,9 +168,9 @@
                 <MenuItem Header="Settings">
                     <MenuItem Header="Gamefield size" Click="GameFieldSize_Click"/>
                     <MenuItem Header="Complexity" ItemContainerStyle="{StaticResource ItemcontainerStyle}">
-                        <MenuItem IsCheckable="True" Header="Easy" IsChecked="False"/>
-                        <MenuItem IsCheckable="True" Header="Average" IsChecked="True"/>
-                        <MenuItem IsCheckable="True" Header="Hard" IsChecked="False"/>
+                        <MenuItem IsCheckable="True" Header="Easy" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLEasyToBool}, Mode=TwoWay}"/>
+                        <MenuItem IsCheckable="True" Header="Average" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLAvToBool}, Mode=TwoWay}"/>
+                        <MenuItem IsCheckable="True" Header="Hard" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLHardToBool}, Mode=TwoWay}"/>
                     </MenuItem>
                 </MenuItem>
             </Menu>

@@ -33,6 +33,7 @@ namespace TetrisMainWindow
             IsGameOver = false;
             cellSize = 35;
 
+            _gameComplexity = GameComplexity.Average;
             if (File.Exists(highScoresFileName))
             {
                 byte[] data = File.ReadAllBytes(highScoresFileName);
@@ -68,15 +69,6 @@ namespace TetrisMainWindow
             _timer = new DispatcherTimer();
 
             _event_interlacer = 0;
-
-            Type t = typeof(TetrisUserControl);
-
-            figureTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
-                .Select(x => x.FullName + ", TetrisFigures")
-                .ToArray();
-
             CurrentGamer = WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
         }
 
@@ -84,7 +76,7 @@ namespace TetrisMainWindow
         private string _currentGamer;
         private string _topGamer;
         private readonly string highScoresFileName = "highscores.scr";
-        //name, score, level, datetime of the record
+        //name, score, level, datetime of the record, game field size
         private List<Tuple<string, int, int, DateTime, string>> highestScores;
         //the highest score to be shown in the StatusBar
         private int _highScore;
@@ -160,8 +152,18 @@ namespace TetrisMainWindow
         private string _add_scoring_info;
         private readonly object balanceLock = new object();
         //holds the typenames of all the figures
-        private readonly string[] figureTypes;
+        private string[] figureTypes;
+        private GameComplexity _gameComplexity;
         #region Properties
+        public GameComplexity GameComplexityLevel
+        {
+            get { return _gameComplexity; }
+            set
+            {
+                _gameComplexity = value;
+                NotifyPropertyChanged("GameComplexityLevel");
+            }
+        }
         public string CurrentGamer
         {
             get { return _currentGamer; }
@@ -882,6 +884,16 @@ namespace TetrisMainWindow
                 overOrPauseText = "GAME OVER";
                 IsGamePaused = false;
             }
+
+            Type t = typeof(TetrisUserControl);
+
+            figureTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(q => t.IsAssignableFrom(q) 
+                    && !q.FullName.Contains("Interfaces") 
+                    && q.GetCustomAttribute<ComplexityAttribute>().Complexity <= GameComplexityLevel)
+                .Select(x => x.FullName + ", TetrisFigures")
+                .ToArray();
 
             InitGrid();
             IsGameStarted = false;

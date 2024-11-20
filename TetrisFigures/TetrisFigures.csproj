@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Converters\MultiBoolToVisibilityConverter.cs" />
+    <Compile Include="Converters\GameLevelsToBoolConverters.cs" />
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="Dialogs\GameFieldSizeDialog.xaml.cs">
       <DependentUpon>GameFieldSizeDialog.xaml</DependentUpon>
