@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using TetrisFigures.Auxiliary;
 
 namespace TetrisFigures.Dialogs
 {
@@ -10,13 +11,13 @@ namespace TetrisFigures.Dialogs
     /// </summary>
     public partial class HighScoresDialog : Window
     {
-        public HighScoresDialog(IEnumerable<Tuple<string, int, int, DateTime, string>> l)
+        public HighScoresDialog(IEnumerable<Tuple<string, int, int, DateTime, string, GameComplexity>> l)
         {
             InitializeComponent();
             DataContext = this;
 
             int k = 0;
-            foreach (Tuple<string, int, int, DateTime, string> item in l)
+            foreach (Tuple<string, int, int, DateTime, string, GameComplexity> item in l)
             {
                 if (++k > 10) break;
                 TextBlock tg = (TextBlock)FindName("Gamer" + k.ToString());
