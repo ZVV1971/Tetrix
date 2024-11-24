@@ -50,6 +50,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auxiliary\ComplexityAttribute.cs" />
     <Compile Include="Auxiliary\Enums.cs" />
     <Compile Include="Auxiliary\GameGridSize.cs" />
     <Compile Include="Auxiliary\ScoreInfoControl.xaml.cs">
@@ -57,6 +58,7 @@
     </Compile>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
     <Compile Include="Converters\MultiBoolToVisibilityConverter.cs" />
+    <Compile Include="Converters\GameLevelsToBoolConverters.cs" />
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="Dialogs\GameFieldSizeDialog.xaml.cs">
       <DependentUpon>GameFieldSizeDialog.xaml</DependentUpon>

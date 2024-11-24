@@ -33,32 +33,33 @@ namespace TetrisMainWindow
             IsGameOver = false;
             cellSize = 35;
 
+            _gameComplexity = GameComplexity.Average;
             if (File.Exists(highScoresFileName))
             {
                 byte[] data = File.ReadAllBytes(highScoresFileName);
                 try
                 {
                     object obj = ObjectSerialize.DeSerialize(data);
-                    if (obj is List<Tuple<string, int, int, DateTime, string>> intermediateScores)
+                    if (obj is List<Tuple<string, int, int, DateTime, string, GameComplexity>> intermediateScores)
                     {
                         highestScores = intermediateScores;
                     }
                     else
                     {
                         List<Tuple<string, int, int, DateTime>> oldScores = obj as List<Tuple<string, int, int, DateTime>>;
-                        highestScores = new List<Tuple<string, int, int, DateTime, string>>();
-                        oldScores.ForEach(x => highestScores.Add(new Tuple<string, int, int, DateTime, string>(x.Item1, x.Item2, x.Item3, x.Item4, "20✕40")));
+                        highestScores = new List<Tuple<string, int, int, DateTime, string, GameComplexity>>();
+                        oldScores.ForEach(x => highestScores.Add(new Tuple<string, int, int, DateTime, string, GameComplexity>(x.Item1, x.Item2, x.Item3, x.Item4, "20✕40", GameComplexity.Average)));
                     }
                     SetHighScores();
                 }
                 catch
                 {
-                    highestScores = new List<Tuple<string, int, int, DateTime, string>>();
+                    highestScores = new List<Tuple<string, int, int, DateTime, string, GameComplexity>>();
                     HighestScore = 0;
                     TopGamer = "";
                 }
             }
-            else highestScores = new List<Tuple<string, int, int, DateTime, string>>();
+            else highestScores = new List<Tuple<string, int, int, DateTime, string, GameComplexity>>();
 #if DEBUG
             SpeedInfo.Visibility = Visibility.Visible;
 #endif
@@ -68,15 +69,6 @@ namespace TetrisMainWindow
             _timer = new DispatcherTimer();
 
             _event_interlacer = 0;
-
-            Type t = typeof(TetrisUserControl);
-
-            figureTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(q => t.IsAssignableFrom(q) && !q.FullName.Contains("Interfaces"))
-                .Select(x => x.FullName + ", TetrisFigures")
-                .ToArray();
-
             CurrentGamer = WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
         }
 
@@ -84,8 +76,8 @@ namespace TetrisMainWindow
         private string _currentGamer;
         private string _topGamer;
         private readonly string highScoresFileName = "highscores.scr";
-        //name, score, level, datetime of the record
-        private List<Tuple<string, int, int, DateTime, string>> highestScores;
+        //name, score, level, datetime of the record, game field size
+        private List<Tuple<string, int, int, DateTime, string, GameComplexity>> highestScores;
         //the highest score to be shown in the StatusBar
         private int _highScore;
         //the size of cell
@@ -160,8 +152,18 @@ namespace TetrisMainWindow
         private string _add_scoring_info;
         private readonly object balanceLock = new object();
         //holds the typenames of all the figures
-        private readonly string[] figureTypes;
+        private string[] figureTypes;
+        private GameComplexity _gameComplexity;
         #region Properties
+        public GameComplexity GameComplexityLevel
+        {
+            get { return _gameComplexity; }
+            set
+            {
+                _gameComplexity = value;
+                NotifyPropertyChanged("GameComplexityLevel");
+            }
+        }
         public string CurrentGamer
         {
             get { return _currentGamer; }
@@ -690,7 +692,7 @@ namespace TetrisMainWindow
             IsGameStarted = false;
             IsGameOver = true;
 
-            highestScores.Add(new Tuple<string, int, int, DateTime, string>(CurrentGamer.Trim(), _score, _level, DateTime.Now, GameFieldSize));
+            highestScores.Add(new Tuple<string, int, int, DateTime, string, GameComplexity>(CurrentGamer.Trim(), _score, _level, DateTime.Now, GameFieldSize, GameComplexityLevel));
 
             if (Score > HighestScore)
             {
@@ -883,6 +885,16 @@ namespace TetrisMainWindow
                 IsGamePaused = false;
             }
 
+            Type t = typeof(TetrisUserControl);
+
+            figureTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(q => t.IsAssignableFrom(q) 
+                    && !q.FullName.Contains("Interfaces") 
+                    && q.GetCustomAttribute<ComplexityAttribute>().Complexity <= GameComplexityLevel)
+                .Select(x => x.FullName + ", TetrisFigures")
+                .ToArray();
+
             InitGrid();
             IsGameStarted = false;
             IsGameOver = false;
@@ -899,7 +911,7 @@ namespace TetrisMainWindow
             RowsToFinish = _initialRowsToFinish;
             _end_of_the_game_indicator = false;
             _event_interlacer = 0;
-            _timer.Interval = new TimeSpan(_initialTimeSpan);
+            _timer.Interval = new TimeSpan(_initialTimeSpan * (100 - (int)GameComplexityLevel * 10) / 100);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
             lock (balanceLock)
@@ -933,8 +945,8 @@ namespace TetrisMainWindow
             {
                 using (FileStream fs = new FileStream(highScoresFileName, FileMode.OpenOrCreate))
                 {
-                    List<Tuple<string, int, int, DateTime, string>> restScores = highestScores.Where(x => !x.Item5.Equals(GameFieldSize)).ToList();
-                    restScores.AddRange(highestScores.Where(x => x.Item5.Equals(GameFieldSize)).Take(10));
+                    List<Tuple<string, int, int, DateTime, string, GameComplexity>> restScores = highestScores.Where(x => !x.Item5.Equals(GameFieldSize) && !x.Item6.Equals(GameComplexityLevel)).ToList();
+                    restScores.AddRange(highestScores.Where(x => x.Item5.Equals(GameFieldSize) && x.Item6.Equals(GameComplexityLevel)).Take(10));
 
                     highestScores.Sort((p1, p2) => -p1.Item2.CompareTo(p2.Item2));
                     byte[] data = ObjectSerialize.Serialize(restScores);

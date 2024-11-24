@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TetrisFigures.Auxiliary;
 using TetrisFigures.Interfaces;
 
 namespace TetrisFigures
@@ -7,6 +8,7 @@ namespace TetrisFigures
     /// <summary>
     /// Interaction logic for TetrisStickControl.xaml
     /// </summary>
+    [Complexity(Complexity = GameComplexity.Easy)]
     public partial class TetrisSquareControl : TetrisUserControl
     {
         public TetrisSquareControl()

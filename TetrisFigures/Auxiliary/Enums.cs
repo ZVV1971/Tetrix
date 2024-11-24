@@ -23,4 +23,11 @@ namespace TetrisFigures.Auxiliary
         Cyan = 4,    //Colors.Cyan,
         Brown = 5,    //Colors.Brown
     }
+
+    public enum GameComplexity
+    {
+        Easy = 0,
+        Average = 1,
+        Hard =2,
+    }
 }
