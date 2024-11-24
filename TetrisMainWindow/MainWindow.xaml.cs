@@ -911,7 +911,7 @@ namespace TetrisMainWindow
             RowsToFinish = _initialRowsToFinish;
             _end_of_the_game_indicator = false;
             _event_interlacer = 0;
-            _timer.Interval = new TimeSpan(_initialTimeSpan);
+            _timer.Interval = new TimeSpan(_initialTimeSpan * (100 - (int)GameComplexityLevel * 10) / 100);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
             lock (balanceLock)
