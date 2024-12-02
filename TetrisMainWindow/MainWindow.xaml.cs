@@ -963,8 +963,6 @@ namespace TetrisMainWindow
                     restScores.AddRange(highestScores.Where(x => x.gameFieldSize.Equals(GameFieldSize) && x.complexityLevel.Equals(GameComplexityLevel)).Take(10));
 
                     highestScores.Sort((p1, p2) => -p1.score.CompareTo(p2.score));
-                    //byte[] data = ObjectSerialize.Serialize(restScores);
-                    //fs.Write(data, 0, data.Length);
 
                     string s = JsonSerializer.Serialize(restScores);
                     byte[] b = Encoding.UTF8.GetBytes(s);
