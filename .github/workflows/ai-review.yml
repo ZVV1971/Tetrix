@@ -36,20 +36,38 @@ jobs:
               exit 0
           }
 
+          # Truncate diff if too large (e.g., max 40,000 chars)
+          $maxDiffLen = 40000
+          if ($diff.Length -gt $maxDiffLen) {
+              $diff = $diff.Substring(0, $maxDiffLen) + "`n`n[Diff truncated due to length limits...]"
+          }
+
           # 2. Construct JSON payload and call Gemini
           $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$env:GEMINI_API_KEY"
           $prompt = "You are a senior code reviewer. Review the following GitHub PR diff and provide constructive feedback on potential bugs, logic errors, or code quality. Format your response in Markdown.`n`n$diff"
           
           $payload = @{
+              system_instruction = @{
+                  parts = @( @{ text = "You are a senior code reviewer. Review the provided GitHub PR diff for potential bugs, logic errors, or performance issues. Provide feedback in Markdown." } )
+              }
               contents = @(
-                  @{ parts = @( @{ text = $prompt } ) }
+                  @{ parts = @( @{ text = "PR Diff:`n`n$diff" } ) }
               )
           }
-          # Depth 10 ensures complex nested arrays in the payload don't get truncated
-          $jsonPayload =$payload | ConvertTo-Json -Depth 10
+          $jsonPayload = $payload | ConvertTo-Json -Depth 10
 
-          $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body $jsonPayload -ContentType "application/json"
-          $reviewText =$geminiResponse.candidates[0].content.parts[0].text
+          try {
+              $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body $jsonPayload -ContentType "application/json; charset=utf-8"
+              $reviewText = $geminiResponse.candidates[0].content.parts[0].text
+          } catch {
+              Write-Error "Failed to get review from Gemini API: $_"
+              exit 1
+          }
+
+          if ([string]::IsNullOrWhiteSpace($reviewText)) {
+              Write-Output "Gemini returned an empty review or was blocked by safety filters."
+              exit 0
+          }
 
           # 3. Post the response as a PR comment
           $commentUrl = "https://api.github.com/repos/$env:REPO/issues/$env:PR_NUMBER/comments"
