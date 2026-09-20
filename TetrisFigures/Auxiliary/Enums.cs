@@ -28,6 +28,6 @@ namespace TetrisFigures.Auxiliary
     {
         Easy = 0,
         Average = 1,
-        Hard =2,
+        Hard = 2,
     }
 }
