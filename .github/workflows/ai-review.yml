@@ -22,6 +22,11 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) {
+            Write-Output "GEMINI_API_KEY secret is missing or unavailable (e.g. PR from fork). Skipping AI review."
+            exit 0
+          }
+          
           # 1. Fetch the raw PR Diff from GitHub
           $ghHeaders = @{
               "Authorization" = "Bearer $env:GITHUB_TOKEN"
@@ -43,7 +48,10 @@ jobs:
           }
 
           # 2. Construct JSON payload and call Gemini
-          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$env:GEMINI_API_KEY"
+          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+          $geminiHeaders = @{
+            "x-goog-api-key" = $env:GEMINI_API_KEY
+          }
           $prompt = "You are a senior code reviewer. Review the following GitHub PR diff and provide constructive feedback on potential bugs, logic errors, or code quality. Format your response in Markdown.`n`n$diff"
           
           $payload = @{
@@ -57,7 +65,7 @@ jobs:
           $jsonPayload = $payload | ConvertTo-Json -Depth 10
 
           try {
-              $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body $jsonPayload -ContentType "application/json; charset=utf-8"
+              $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Headers $geminiHeaders -Method Post -Body $jsonPayload -ContentType "application/json; charset=utf-8"
               $reviewText = $geminiResponse.candidates[0].content.parts[0].text
           } catch {
               Write-Error "Failed to get review from Gemini API: $_"
