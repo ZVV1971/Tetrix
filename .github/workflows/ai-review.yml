@@ -37,7 +37,7 @@ jobs:
           }
 
           # 2. Construct JSON payload and call Gemini
-          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$env:GEMINI_API_KEY"
+          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$env:GEMINI_API_KEY"
           $prompt = "You are a senior code reviewer. Review the following GitHub PR diff and provide constructive feedback on potential bugs, logic errors, or code quality. Format your response in Markdown.`n`n$diff"
           
           $payload = @{
