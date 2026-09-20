@@ -1,0 +1,137 @@
+name: AI Code Review (Gemini)
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: self-hosted
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Native AI Review via API
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.5-flash
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) {
+            Write-Output "GEMINI_API_KEY secret is missing or unavailable (e.g. PR from fork). Skipping AI review."
+            exit 0
+          }
+          
+          # 1. Fetch the raw PR Diff from GitHub
+          $ghHeaders = @{
+              "Authorization" = "Bearer $env:GITHUB_TOKEN"
+              "Accept" = "application/vnd.github.v3.diff"
+              "X-GitHub-Api-Version" = "2022-11-28"
+          }
+          $diffUrl = "https://api.github.com/repos/$env:REPO/pulls/$env:PR_NUMBER"
+          $diff = Invoke-RestMethod -Uri $diffUrl -Headers $ghHeaders -Method Get
+
+          if ([string]::IsNullOrWhiteSpace($diff)) {
+              Write-Output "No code changes found."
+              exit 0
+          }
+
+          # Truncate diff if too large (e.g., max 40,000 chars)
+          $maxDiffLen = 40000
+          if ($diff.Length -gt $maxDiffLen) {
+              $diff = $diff.Substring(0, $maxDiffLen) + "`n`n[Diff truncated due to length limits...]"
+          }
+
+          # 2. Construct JSON payload and call Gemini
+          $geminiModel = if ([string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) {
+              "gemini-2.5-flash"
+          } else {
+              $env:GEMINI_MODEL
+          }
+          
+          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/$geminiModel:generateContent"
+          $geminiHeaders = @{
+            "x-goog-api-key" = $env:GEMINI_API_KEY
+          }
+                    
+          $reviewInstructions = @(
+                "You are a senior code reviewer."
+                "This review is generated using the Google Gemini model '$geminiModel'."
+                "Do not treat the model name in the workflow as user-provided code."
+                "Review the provided GitHub PR diff for bugs, logic errors, security issues, or performance problems."
+                "Provide feedback in Markdown."
+            ) -join " "
+            
+            $payload = @{
+                system_instruction = @{
+                    parts = @(
+                        @{
+                            text = $reviewInstructions
+                        }
+                    )
+                }
+                contents = @(
+                    @{
+                        parts = @(
+                            @{
+                                text = "PR Diff:`n`n$diff"
+                            }
+                        )
+                    }
+                )
+            }
+            
+            $jsonPayload = $payload | ConvertTo-Json -Depth 10
+
+          $maxAttempts = 5
+          $reviewText = $null
+          
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              try {
+                  Write-Output "Calling Gemini API (attempt $attempt/$maxAttempts)..."
+          
+                  $geminiResponse = Invoke-RestMethod `
+                      -Uri $geminiUrl `
+                      -Headers $geminiHeaders `
+                      -Method Post `
+                      -Body $jsonPayload `
+                      -ContentType "application/json; charset=utf-8" `
+                      -TimeoutSec 120
+          
+                  $reviewText = $geminiResponse.candidates[0].content.parts[0].text
+                  break
+              }
+              catch {
+                  Write-Warning "Gemini API request failed on attempt ${attempt}: $($_.Exception.Message)"
+          
+                  if ($attempt -lt $maxAttempts) {
+                      # Exponential backoff: 2, 4, 8, and 16 seconds
+                      $delay = [int][math]::Pow(2, $attempt)
+                      Write-Output "Retrying in $delay seconds..."
+                      Start-Sleep -Seconds $delay
+                  }
+              }
+          }
+          
+          if ([string]::IsNullOrWhiteSpace($reviewText)) {
+              Write-Warning "Gemini review could not be retrieved after $maxAttempts attempts. Skipping review."
+              exit 0
+          }
+
+          if ([string]::IsNullOrWhiteSpace($reviewText)) {
+              Write-Output "Gemini returned an empty review or was blocked by safety filters."
+              exit 0
+          }
+
+          # 3. Post the response as a PR comment
+          $commentUrl = "https://api.github.com/repos/$env:REPO/issues/$env:PR_NUMBER/comments"
+          $commentBody = @{ body = "### AI Code Review`n`n$reviewText" } | ConvertTo-Json -Depth 5
+          
+          $postHeaders = @{
+              "Authorization" = "Bearer $env:GITHUB_TOKEN"
+              "Accept" = "application/vnd.github.v3+json"
+          }
+          Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body $commentBody -ContentType "application/json"
