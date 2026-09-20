@@ -29,7 +29,7 @@ jobs:
               "X-GitHub-Api-Version" = "2022-11-28"
           }
           $diffUrl = "https://api.github.com/repos/$env:REPO/pulls/$env:PR_NUMBER"
-          $diff = Invoke-RestMethod -Uri $diffUrl -Headers$ghHeaders -Method Get
+          $diff = Invoke-RestMethod -Uri $diffUrl -Headers $ghHeaders -Method Get
 
           if ([string]::IsNullOrWhiteSpace($diff)) {
               Write-Output "No code changes found."
@@ -48,7 +48,7 @@ jobs:
           # Depth 10 ensures complex nested arrays in the payload don't get truncated
           $jsonPayload =$payload | ConvertTo-Json -Depth 10
 
-          $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body$jsonPayload -ContentType "application/json"
+          $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body $jsonPayload -ContentType "application/json"
           $reviewText =$geminiResponse.candidates[0].content.parts[0].text
 
           # 3. Post the response as a PR comment
@@ -59,4 +59,4 @@ jobs:
               "Authorization" = "Bearer $env:GITHUB_TOKEN"
               "Accept" = "application/vnd.github.v3+json"
           }
-          Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body$commentBody -ContentType "application/json"
+          Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body $commentBody -ContentType "application/json"
