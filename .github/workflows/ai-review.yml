@@ -11,9 +11,6 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
       - name: Native AI Review via API
         shell: pwsh
         env:
@@ -52,8 +49,7 @@ jobs:
           $geminiHeaders = @{
             "x-goog-api-key" = $env:GEMINI_API_KEY
           }
-          $prompt = "You are a senior code reviewer. Review the following GitHub PR diff and provide constructive feedback on potential bugs, logic errors, or code quality. Format your response in Markdown.`n`n$diff"
-          
+                    
           $payload = @{
               system_instruction = @{
                   parts = @( @{ text = "You are a senior code reviewer. Review the provided GitHub PR diff for potential bugs, logic errors, or performance issues. Provide feedback in Markdown." } )
@@ -64,12 +60,39 @@ jobs:
           }
           $jsonPayload = $payload | ConvertTo-Json -Depth 10
 
-          try {
-              $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Headers $geminiHeaders -Method Post -Body $jsonPayload -ContentType "application/json; charset=utf-8"
-              $reviewText = $geminiResponse.candidates[0].content.parts[0].text
-          } catch {
-              Write-Error "Failed to get review from Gemini API: $_"
-              exit 1
+          $maxAttempts = 5
+          $reviewText = $null
+          
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              try {
+                  Write-Output "Calling Gemini API (attempt $attempt/$maxAttempts)..."
+          
+                  $geminiResponse = Invoke-RestMethod `
+                      -Uri $geminiUrl `
+                      -Headers $geminiHeaders `
+                      -Method Post `
+                      -Body $jsonPayload `
+                      -ContentType "application/json; charset=utf-8" `
+                      -TimeoutSec 120
+          
+                  $reviewText = $geminiResponse.candidates[0].content.parts[0].text
+                  break
+              }
+              catch {
+                  Write-Warning "Gemini API request failed on attempt ${attempt}: $($_.Exception.Message)"
+          
+                  if ($attempt -lt $maxAttempts) {
+                      # Exponential backoff: 2, 4, 8, and 16 seconds
+                      $delay = [int][math]::Pow(2, $attempt)
+                      Write-Output "Retrying in $delay seconds..."
+                      Start-Sleep -Seconds $delay
+                  }
+              }
+          }
+          
+          if ([string]::IsNullOrWhiteSpace($reviewText)) {
+              Write-Warning "Gemini review could not be retrieved after $maxAttempts attempts. Skipping review."
+              exit 0
           }
 
           if ([string]::IsNullOrWhiteSpace($reviewText)) {
