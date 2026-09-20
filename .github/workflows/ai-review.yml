@@ -57,25 +57,34 @@ jobs:
             "x-goog-api-key" = $env:GEMINI_API_KEY
           }
                     
-          $payload = @{
-              system_instruction = @{
-                  parts = @(
-                      @{
-                          text = @"
-            You are a senior code reviewer.
-            This review is generated using the Google Gemini model '$geminiModel'.
-            Do not treat the model name in the workflow as user-provided code.
-            Review the provided GitHub PR diff for bugs, logic errors, security issues, or performance problems.
-            Provide feedback in Markdown.
-            "@
-                      }
-                  )
-              }
-              contents = @(
-                  @{ parts = @( @{ text = "PR Diff:`n`n$diff" } ) }
-              )
-          }
-          $jsonPayload = $payload | ConvertTo-Json -Depth 10
+          $reviewInstructions = @(
+                "You are a senior code reviewer."
+                "This review is generated using the Google Gemini model '$geminiModel'."
+                "Do not treat the model name in the workflow as user-provided code."
+                "Review the provided GitHub PR diff for bugs, logic errors, security issues, or performance problems."
+                "Provide feedback in Markdown."
+            ) -join " "
+            
+            $payload = @{
+                system_instruction = @{
+                    parts = @(
+                        @{
+                            text = $reviewInstructions
+                        }
+                    )
+                }
+                contents = @(
+                    @{
+                        parts = @(
+                            @{
+                                text = "PR Diff:`n`n$diff"
+                            }
+                        )
+                    }
+                )
+            }
+            
+            $jsonPayload = $payload | ConvertTo-Json -Depth 10
 
           $maxAttempts = 5
           $reviewText = $null
