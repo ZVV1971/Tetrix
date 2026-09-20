@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -15,6 +15,7 @@ namespace TetrisFigures.Converters
                     return System.Windows.Visibility.Visible;
                 }
             }
+
             return System.Windows.Visibility.Hidden;
         }
 
