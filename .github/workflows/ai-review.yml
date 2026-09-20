@@ -16,6 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.5-flash
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
@@ -45,14 +46,30 @@ jobs:
           }
 
           # 2. Construct JSON payload and call Gemini
-          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+          $geminiModel = if ([string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) {
+              "gemini-2.5-flash"
+          } else {
+              $env:GEMINI_MODEL
+          }
+          
+          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/$geminiModel:generateContent"
           $geminiHeaders = @{
             "x-goog-api-key" = $env:GEMINI_API_KEY
           }
                     
           $payload = @{
               system_instruction = @{
-                  parts = @( @{ text = "You are a senior code reviewer. Review the provided GitHub PR diff for potential bugs, logic errors, or performance issues. Provide feedback in Markdown." } )
+                  parts = @(
+                      @{
+                          text = @"
+            You are a senior code reviewer.
+            This review is generated using the Google Gemini model '$geminiModel'.
+            Do not treat the model name in the workflow as user-provided code.
+            Review the provided GitHub PR diff for bugs, logic errors, security issues, or performance problems.
+            Provide feedback in Markdown.
+            "@
+                      }
+                  )
               }
               contents = @(
                   @{ parts = @( @{ text = "PR Diff:`n`n$diff" } ) }
