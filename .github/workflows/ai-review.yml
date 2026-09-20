@@ -3,25 +3,60 @@ name: AI Code Review (Gemini)
 on:
   pull_request:
     types: [opened, synchronize]
-  issue_comment:
-    types: [created, edited]
 
 jobs:
-  pr_agent_job:
-    if: ${{ github.event.sender.type != 'Bot' }}
-    runs-on: self-hosted 
+  review:
+    runs-on: self-hosted
     permissions:
-      issues: write
       pull-requests: write
       contents: read
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-        
-      - name: PR Agent action step
-        uses: the-pr-agent/pr-agent@main
+
+      - name: Native AI Review via API
+        shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          config.model: "gemini/gemini-1.5-flash"
-          config.fallback_models: '["gemini/gemini-1.5-flash"]'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # 1. Fetch the raw PR Diff from GitHub
+          $ghHeaders = @{
+              "Authorization" = "Bearer $env:GITHUB_TOKEN"
+              "Accept" = "application/vnd.github.v3.diff"
+              "X-GitHub-Api-Version" = "2022-11-28"
+          }
+          $diffUrl = "https://api.github.com/repos/$env:REPO/pulls/$env:PR_NUMBER"
+          $diff = Invoke-RestMethod -Uri $diffUrl -Headers$ghHeaders -Method Get
+
+          if ([string]::IsNullOrWhiteSpace($diff)) {
+              Write-Output "No code changes found."
+              exit 0
+          }
+
+          # 2. Construct JSON payload and call Gemini
+          $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$env:GEMINI_API_KEY"
+          $prompt = "You are a senior code reviewer. Review the following GitHub PR diff and provide constructive feedback on potential bugs, logic errors, or code quality. Format your response in Markdown.`n`n$diff"
+          
+          $payload = @{
+              contents = @(
+                  @{ parts = @( @{ text = $prompt } ) }
+              )
+          }
+          # Depth 10 ensures complex nested arrays in the payload don't get truncated
+          $jsonPayload =$payload | ConvertTo-Json -Depth 10
+
+          $geminiResponse = Invoke-RestMethod -Uri $geminiUrl -Method Post -Body$jsonPayload -ContentType "application/json"
+          $reviewText =$geminiResponse.candidates[0].content.parts[0].text
+
+          # 3. Post the response as a PR comment
+          $commentUrl = "https://api.github.com/repos/$env:REPO/issues/$env:PR_NUMBER/comments"
+          $commentBody = @{ body = "### AI Code Review`n`n$reviewText" } | ConvertTo-Json -Depth 5
+          
+          $postHeaders = @{
+              "Authorization" = "Bearer $env:GITHUB_TOKEN"
+              "Accept" = "application/vnd.github.v3+json"
+          }
+          Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body$commentBody -ContentType "application/json"
