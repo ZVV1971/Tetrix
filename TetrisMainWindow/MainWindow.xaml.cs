@@ -697,6 +697,14 @@ namespace TetrisMainWindow
                 return;
             }
 
+            // Allow keyboard navigation if the user is in menu mode (Alt or F10 pressed to activate menu bar).
+            // In menu mode, Keyboard.FocusedElement may still be on the game field, but WPF is processing
+            // menu navigation keys, so we must not intercept them.
+            if (InputManager.Current.IsInMenuMode)
+            {
+                return;
+            }
+
             // Allow keyboard navigation if the user is interacting with the menu.
             // Check both focus and event source, including menu bar (top-level Menu) and
             // any child elements within menu templates (TextBlock, Border, etc).
