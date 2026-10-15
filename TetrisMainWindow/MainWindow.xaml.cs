@@ -716,7 +716,8 @@ namespace TetrisMainWindow
             // Allow input to interactive controls (text input, buttons, etc) during gameplay.
             // This ensures that TextBox, PasswordBox, ComboBox, and other controls can receive keyboard input
             // even when the game is running. Buttons can be activated via Space, and text can be entered.
-            var focusedElement = Keyboard.FocusedElement as UIElement;
+            // Check both FocusedElement and OriginalSource to handle focus transitions and event origination.
+            var focusedElement = (Keyboard.FocusedElement ?? e.OriginalSource) as UIElement;
             if (focusedElement != null)
             {
                 // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
@@ -738,9 +739,9 @@ namespace TetrisMainWindow
                 }
 
                 // Button activation via Space, and other ButtonBase-derived controls.
-                // Note: This prioritizes button activation over game hard-drop when a button has focus.
-                // If a user navigates to a button via Tab/mouse and presses Space during active gameplay,
-                // the button will be activated instead of performing hard drop. This is intentional for UI accessibility.
+                // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
+                // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
+                // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
                 if (focusedElement is ButtonBase && e.Key == Key.Space)
                 {
                     return;
