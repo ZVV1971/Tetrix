@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -717,29 +718,29 @@ namespace TetrisMainWindow
         /// Checks if an element is a menu control or is contained within a menu's visual tree.
         /// This covers the menu bar (Menu), menu items (MenuItem), and any child elements
         /// within menu control templates.
+        /// Uses VisualTreeHelper to traverse template boundaries and LogicalTreeHelper as fallback
+        /// for non-visual elements.
         /// </summary>
         private static bool IsElementInMenu(DependencyObject element)
         {
-            if (element == null)
+            while (element != null)
             {
-                return false;
-            }
-
-            // Check if the element itself is a menu control
-            if (element is Menu || element is MenuItem)
-            {
-                return true;
-            }
-
-            // Walk up the logical tree to check if any ancestor is a menu control
-            DependencyObject parent = LogicalTreeHelper.GetParent(element);
-            while (parent != null)
-            {
-                if (parent is Menu || parent is MenuItem)
+                // Check if the current element is a menu control
+                if (element is MenuBase || element is MenuItem)
                 {
                     return true;
                 }
-                parent = LogicalTreeHelper.GetParent(parent);
+
+                // Traverse the visual tree (handles template children correctly)
+                // with fallback to logical tree for non-visual elements
+                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
+                {
+                    element = VisualTreeHelper.GetParent(element);
+                }
+                else
+                {
+                    element = LogicalTreeHelper.GetParent(element);
+                }
             }
 
             return false;
