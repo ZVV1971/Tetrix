@@ -689,43 +689,23 @@ namespace TetrisMainWindow
 
         /// <summary>
         /// Handles game keys through WPF's routed keyboard input, independent of which child has focus.
+        /// Guards are ordered by performance: fast checks first, expensive tree traversals last.
         /// </summary>
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // Guard 1: Only accept arrow keys and Space for game input
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
+            {
+                return;
+            }
+
+            // Guard 2: Game must be started and not paused
             if (!IsGameStarted || IsGamePaused)
             {
                 return;
             }
 
-            // Allow keyboard navigation if the user is in menu mode (Alt or F10 pressed to activate menu bar).
-            // In menu mode, Keyboard.FocusedElement may still be on the game field, but WPF is processing
-            // menu navigation keys, so we must not intercept them.
-            if (InputManager.Current.IsInMenuMode)
-            {
-                return;
-            }
-
-            // Allow keyboard navigation if the user is interacting with the menu.
-            // Check both focus and event source, including menu bar (top-level Menu) and
-            // any child elements within menu templates (TextBlock, Border, etc).
-            if (IsElementInMenu(Keyboard.FocusedElement as DependencyObject) || IsElementInMenu(e.OriginalSource as DependencyObject))
-            {
-                return;
-            }
-
-            // Allow input to interactive controls (text input, buttons, etc) during gameplay.
-            // This ensures that TextBox, PasswordBox, ComboBox, Slider, ListBox, and other controls 
-            // can receive keyboard input even when the game is running. Text can be entered, arrows
-            // can navigate sliders/lists, and Space can activate buttons.
-            // Use IsInteractiveControl which traverses visual/logical trees to handle template children
-            // (e.g., TextBoxView inside TextBox, not just TextBox itself).
-            if (IsInteractiveControl(Keyboard.FocusedElement as DependencyObject, e.Key) ||
-                IsInteractiveControl(e.OriginalSource as DependencyObject, e.Key))
-            {
-                return;
-            }
-
-            // Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win).
+            // Guard 3: Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win)
             // This allows system shortcuts (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Left/Right for word navigation, IME switching, etc.)
             // and application-level shortcuts to work properly without being consumed by game input.
             if (Keyboard.Modifiers != ModifierKeys.None)
@@ -733,11 +713,37 @@ namespace TetrisMainWindow
                 return;
             }
 
-            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
+            // Guard 4: Allow keyboard navigation if the user is in menu mode (Alt or F10 pressed to activate menu bar).
+            // In menu mode, Keyboard.FocusedElement may still be on the game field, but WPF is processing
+            // menu navigation keys, so we must not intercept them.
+            if (InputManager.Current.IsInMenuMode)
             {
                 return;
             }
 
+            // Guard 5: Allow keyboard navigation if the user is interacting with the menu.
+            // Check both focus and event source, including menu bar (top-level Menu) and
+            // any child elements within menu templates (TextBlock, Border, etc).
+            // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
+            if (IsElementInMenu(Keyboard.FocusedElement as DependencyObject) || IsElementInMenu(e.OriginalSource as DependencyObject))
+            {
+                return;
+            }
+
+            // Guard 6: Allow input to interactive controls (text input, buttons, sliders, etc) during gameplay.
+            // This ensures that TextBox, PasswordBox, ComboBox, Slider, ListBox, and other controls 
+            // can receive keyboard input even when the game is running. Text can be entered, arrows
+            // can navigate sliders/lists, and Space can activate buttons.
+            // Use IsInteractiveControl which traverses visual/logical trees to handle template children
+            // (e.g., TextBoxView inside TextBox, not just TextBox itself).
+            // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
+            if (IsInteractiveControl(Keyboard.FocusedElement as DependencyObject, e.Key) ||
+                IsInteractiveControl(e.OriginalSource as DependencyObject, e.Key))
+            {
+                return;
+            }
+
+            // All guards passed: consume the game key
             ProcessGameKey(e.Key);
             e.Handled = true;
         }
