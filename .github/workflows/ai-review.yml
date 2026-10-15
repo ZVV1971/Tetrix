@@ -39,13 +39,13 @@ jobs:
               exit 0
           }
 
-          # Increased limit to 1M characters to leverage Gemini 2.5 Flash's massive context window
+          # Increased limit to 1M characters to leverage Gemini 3.6 Flash's massive context window
           $maxDiffLen = 1000000 
           if ($diff.Length -gt $maxDiffLen) {$diff = $diff.Substring(0,$maxDiffLen) + "`n`n[Diff truncated due to length limits...]"
           }
 
           # 2. Construct JSON payload and call Gemini
-          $geminiModel = if ([string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) { "gemini-2.5-flash" } else { $env:GEMINI_MODEL }
+          $geminiModel = if ([string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) { "gemini-3.6-flash" } else { $env:GEMINI_MODEL }
           
           # FIXED: Explicit string concatenation prevents PowerShell from misinterpreting the colon as a scope drive
           $geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + $geminiModel + ":generateContent"
