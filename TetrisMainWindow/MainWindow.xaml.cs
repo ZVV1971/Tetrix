@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -30,45 +30,8 @@ namespace TetrisMainWindow
         {
             InitializeComponent();
             DataContext = this;
-            IsGameStarted = false;
-            IsGamePaused = false;
-            IsGameOver = false;
-            cellSize = 35;
-
-            _gameComplexity = GameComplexity.Average;
-            if (File.Exists(highScoresFileName))
-            {
-                try
-                {
-                    byte[] data = File.ReadAllBytes(highScoresFileName);
-                    using (MemoryStream outputStream = new MemoryStream())
-                    {
-                        using (MemoryStream inputStream = new MemoryStream(data))
-                        {
-                            using (GZipStream zip = new GZipStream(inputStream, CompressionMode.Decompress))
-                            {
-                                zip.CopyTo(outputStream);
-                            }
-                        }
-
-                        string s = Encoding.UTF8.GetString(outputStream.ToArray());
-                        List<ScoreRecord> intermediateScores = JsonSerializer.Deserialize<List<ScoreRecord>>(s);
-                        highestScores = intermediateScores;
-                    }
-
-                    SetHighScores();
-                }
-                catch
-                {
-                    highestScores = new List<ScoreRecord>();
-                    HighestScore = 0;
-                    TopGamer = string.Empty;
-                }
-            }
-            else
-            {
-                highestScores = new List<ScoreRecord>();
-            }
+            InitializeGameState();
+            LoadHighScores();
 
 #if DEBUG
             SpeedInfo.Visibility = Visibility.Visible;
@@ -77,7 +40,62 @@ namespace TetrisMainWindow
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             _timer = new DispatcherTimer();
             _event_interlacer = 0;
-            CurrentGamer = WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
+            CurrentGamer = GetCurrentGamerName();
+        }
+
+        private void InitializeGameState()
+        {
+            IsGameStarted = false;
+            IsGamePaused = false;
+            IsGameOver = false;
+            cellSize = 35;
+            _gameComplexity = GameComplexity.Average;
+        }
+
+        private void LoadHighScores()
+        {
+            if (!File.Exists(highScoresFileName))
+            {
+                highestScores = new List<ScoreRecord>();
+                return;
+            }
+
+            try
+            {
+                byte[] data = File.ReadAllBytes(highScoresFileName);
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    using (MemoryStream inputStream = new MemoryStream(data))
+                    {
+                        using (GZipStream zip = new GZipStream(inputStream, CompressionMode.Decompress))
+                        {
+                            zip.CopyTo(outputStream);
+                        }
+                    }
+
+                    string serializedScores = Encoding.UTF8.GetString(outputStream.ToArray());
+                    List<ScoreRecord> intermediateScores = JsonSerializer.Deserialize<List<ScoreRecord>>(serializedScores);
+                    highestScores = intermediateScores ?? new List<ScoreRecord>();
+                }
+
+                SetHighScores();
+            }
+            catch
+            {
+                ResetHighScores();
+            }
+        }
+
+        private void ResetHighScores()
+        {
+            highestScores = new List<ScoreRecord>();
+            HighestScore = 0;
+            TopGamer = string.Empty;
+        }
+
+        private static string GetCurrentGamerName()
+        {
+            return WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
         }
 
         private double _cellSizeForCanvas;
@@ -96,7 +114,7 @@ namespace TetrisMainWindow
         private TetrisUserControl beforeNextFigure;
         private bool _gameStarted;
         private bool _gamePaused;
-        private readonly int cellSize;
+        private int cellSize;
         // keeps track of the score
         private int _score;
         // holds the actual value of the current level
