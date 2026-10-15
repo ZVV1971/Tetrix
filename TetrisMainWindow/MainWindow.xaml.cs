@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -687,17 +688,194 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        /// Process keyboard events
+        /// Handles game keys through WPF's routed keyboard input, independent of which child has focus.
+        /// Guards are ordered by performance: fast checks first, expensive tree traversals last.
         /// </summary>
-        private void CellGrid_KeyDown(object sender, KeyEventArgs e)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // Guard 1: Only accept arrow keys and Space for game input
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
+            {
+                return;
+            }
+
+            // Guard 2: Game must be started and not paused
             if (!IsGameStarted || IsGamePaused)
             {
                 return;
             }
 
+            // Guard 3: Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win)
+            // This allows system shortcuts (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Left/Right for word navigation, IME switching, etc.)
+            // and application-level shortcuts to work properly without being consumed by game input.
+            if (Keyboard.Modifiers != ModifierKeys.None)
+            {
+                return;
+            }
+
+            // Guard 4: Allow keyboard navigation if the user is in menu mode (Alt or F10 pressed to activate menu bar).
+            // In menu mode, Keyboard.FocusedElement may still be on the game field, but WPF is processing
+            // menu navigation keys, so we must not intercept them.
+            if (InputManager.Current.IsInMenuMode)
+            {
+                return;
+            }
+
+            // Guard 5: Allow keyboard navigation if the user is interacting with the menu.
+            // Check both focus and event source, including menu bar (top-level Menu) and
+            // any child elements within menu templates (TextBlock, Border, etc).
+            // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
+            if (IsElementInMenu(Keyboard.FocusedElement as DependencyObject) || IsElementInMenu(e.OriginalSource as DependencyObject))
+            {
+                return;
+            }
+
+            // Guard 6: Allow input to interactive controls (text input, buttons, sliders, etc) during gameplay.
+            // This ensures that TextBox, PasswordBox, ComboBox, Slider, ListBox, and other controls 
+            // can receive keyboard input even when the game is running. Text can be entered, arrows
+            // can navigate sliders/lists, and Space can activate buttons.
+            // Use IsInteractiveControl which traverses visual/logical trees to handle template children
+            // (e.g., TextBoxView inside TextBox, not just TextBox itself).
+            // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
+            if (IsInteractiveControl(Keyboard.FocusedElement as DependencyObject, e.Key) ||
+                IsInteractiveControl(e.OriginalSource as DependencyObject, e.Key))
+            {
+                return;
+            }
+
+            // All guards passed: consume the game key
+            ProcessGameKey(e.Key);
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Checks if an element is a menu control or is contained within a menu's visual tree.
+        /// This covers the menu bar (Menu), menu items (MenuItem), and any child elements
+        /// within menu control templates.
+        /// Uses VisualTreeHelper to traverse template boundaries and LogicalTreeHelper as fallback
+        /// for non-visual elements or when visual parent is null at template boundaries.
+        /// </summary>
+        private static bool IsElementInMenu(DependencyObject element)
+        {
+            while (element != null)
+            {
+                // Check if the current element is a menu control
+                if (element is MenuBase || element is MenuItem)
+                {
+                    return true;
+                }
+
+                // Traverse the visual tree (handles template children correctly)
+                // with fallback to logical tree when visual parent is null or for non-visual elements.
+                // This ensures we don't get stuck at template boundaries where visual parent is null.
+                DependencyObject parent = null;
+                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
+                {
+                    parent = VisualTreeHelper.GetParent(element);
+                }
+
+                // Fallback to logical parent if visual parent is null or if element is non-visual
+                element = parent ?? LogicalTreeHelper.GetParent(element);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an element or its ancestors are interactive controls that should consume keyboard input
+        /// during gameplay (text editing, button activation, slider/listbox navigation).
+        /// Traverses both visual and logical trees to handle template children (e.g., TextBoxView inside TextBox)
+        /// that would not be matched by direct type checks.
+        /// </summary>
+        /// <param name="element">The element to check (usually FocusedElement or OriginalSource)</param>
+        /// <param name="key">The key being pressed (used to check if Space should activate a button)</param>
+        /// <returns>True if the element or an ancestor is an interactive control that should receive the key</returns>
+        private static bool IsInteractiveControl(DependencyObject element, Key key)
+        {
+            while (element != null)
+            {
+                // FrameworkContentElement (Run, Span, Hyperlink inside rich text) - handle specially
+                if (element is FrameworkContentElement fce)
+                {
+                    element = fce.Parent;
+                    continue;
+                }
+
+                // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
+                // Handle all text input controls
+                if (element is System.Windows.Controls.Primitives.TextBoxBase)
+                {
+                    return true;
+                }
+
+                // PasswordBox does not inherit from TextBoxBase, so check it explicitly
+                if (element is PasswordBox)
+                {
+                    return true;
+                }
+
+                // ComboBox text input field (for editable comboboxes)
+                if (element is ComboBox)
+                {
+                    return true;
+                }
+
+                // Button activation via Space, and other ButtonBase-derived controls
+                // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
+                // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
+                // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
+                if (element is ButtonBase && key == Key.Space)
+                {
+                    return true;
+                }
+
+                // Slider - arrow keys navigate the slider value
+                if (element is Slider && (key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down))
+                {
+                    return true;
+                }
+
+                // ListBox - arrow keys navigate items
+                if (element is ListBox && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // DataGrid - arrow keys navigate cells
+                if (element is System.Windows.Controls.DataGrid && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // TreeView - arrow keys navigate nodes
+                if (element is TreeView && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // Menu and MenuItem should not be checked here; use IsElementInMenu instead
+                // to avoid redundant traversal that's already done in Window_PreviewKeyDown
+
+                // Traverse the visual tree (handles template children correctly)
+                // with fallback to logical tree when visual parent is null or for non-visual elements.
+                // This ensures we don't get stuck at template boundaries where visual parent is null.
+                DependencyObject parent = null;
+                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
+                {
+                    parent = VisualTreeHelper.GetParent(element);
+                }
+
+                // Fallback to logical parent if visual parent is null or if element is non-visual
+                element = parent ?? LogicalTreeHelper.GetParent(element);
+            }
+
+            return false;
+        }
+
+        private void ProcessGameKey(Key key)
+        {
             List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
-            switch (e.Key)
+            switch (key)
             {
                 case Key.Up:
                     newPos = currentFigure.Rotate(currentFigureCoordinates).ToList();
@@ -1076,6 +1254,12 @@ namespace TetrisMainWindow
             }
 
             IsGamePaused = !IsGamePaused;
+
+            if (!IsGamePaused)
+            {
+                // Restore keyboard input to the game field after resuming.
+                _ = Keyboard.Focus(cellGrid);
+            }
         }
 
         /// <summary>
