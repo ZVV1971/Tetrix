@@ -719,8 +719,14 @@ namespace TetrisMainWindow
             var focusedElement = Keyboard.FocusedElement as UIElement;
             if (focusedElement != null)
             {
-                // TextBoxBase and derived controls (TextBox, PasswordBox, RichTextBox, etc)
+                // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
                 if (focusedElement is System.Windows.Controls.Primitives.TextBoxBase)
+                {
+                    return;
+                }
+
+                // PasswordBox does not inherit from TextBoxBase, so check it explicitly
+                if (focusedElement is PasswordBox)
                 {
                     return;
                 }
@@ -731,11 +737,22 @@ namespace TetrisMainWindow
                     return;
                 }
 
-                // Button activation via Space, and other ButtonBase-derived controls
+                // Button activation via Space, and other ButtonBase-derived controls.
+                // Note: This prioritizes button activation over game hard-drop when a button has focus.
+                // If a user navigates to a button via Tab/mouse and presses Space during active gameplay,
+                // the button will be activated instead of performing hard drop. This is intentional for UI accessibility.
                 if (focusedElement is ButtonBase && e.Key == Key.Space)
                 {
                     return;
                 }
+            }
+
+            // Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win).
+            // This allows system shortcuts (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Left/Right for word navigation, IME switching, etc.)
+            // and application-level shortcuts to work properly without being consumed by game input.
+            if (Keyboard.Modifiers != ModifierKeys.None)
+            {
+                return;
             }
 
             if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
