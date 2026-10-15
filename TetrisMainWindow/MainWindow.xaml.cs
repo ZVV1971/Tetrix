@@ -696,6 +696,13 @@ namespace TetrisMainWindow
                 return;
             }
 
+            // Allow keyboard navigation if the user is interacting with the menu.
+            // This prevents game keys from consuming menu arrow/space input in edge cases.
+            if (Keyboard.FocusedElement is MenuItem || e.OriginalSource is MenuItem)
+            {
+                return;
+            }
+
             if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
             {
                 return;
