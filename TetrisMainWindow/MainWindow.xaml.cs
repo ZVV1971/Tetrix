@@ -713,6 +713,31 @@ namespace TetrisMainWindow
                 return;
             }
 
+            // Allow input to interactive controls (text input, buttons, etc) during gameplay.
+            // This ensures that TextBox, PasswordBox, ComboBox, and other controls can receive keyboard input
+            // even when the game is running. Buttons can be activated via Space, and text can be entered.
+            var focusedElement = Keyboard.FocusedElement as UIElement;
+            if (focusedElement != null)
+            {
+                // TextBoxBase and derived controls (TextBox, PasswordBox, RichTextBox, etc)
+                if (focusedElement is System.Windows.Controls.Primitives.TextBoxBase)
+                {
+                    return;
+                }
+
+                // ComboBox text input field
+                if (focusedElement is ComboBox)
+                {
+                    return;
+                }
+
+                // Button activation via Space, and other ButtonBase-derived controls
+                if (focusedElement is ButtonBase && e.Key == Key.Space)
+                {
+                    return;
+                }
+            }
+
             if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
             {
                 return;
