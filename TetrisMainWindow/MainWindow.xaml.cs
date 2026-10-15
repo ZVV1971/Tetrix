@@ -714,47 +714,15 @@ namespace TetrisMainWindow
             }
 
             // Allow input to interactive controls (text input, buttons, etc) during gameplay.
-            // This ensures that TextBox, PasswordBox, ComboBox, and other controls can receive keyboard input
-            // even when the game is running. Buttons can be activated via Space, and text can be entered.
-            // Check both FocusedElement and OriginalSource to handle focus transitions and event origination.
-            var focusedElement = (Keyboard.FocusedElement ?? e.OriginalSource);
-
-            // If focus originates from a FrameworkContentElement (Run, Span, Hyperlink inside rich text),
-            // traverse to its logical parent (e.g., RichTextBox) to correctly classify the control.
-            if (focusedElement is FrameworkContentElement fce)
+            // This ensures that TextBox, PasswordBox, ComboBox, Slider, ListBox, and other controls 
+            // can receive keyboard input even when the game is running. Text can be entered, arrows
+            // can navigate sliders/lists, and Space can activate buttons.
+            // Use IsInteractiveControl which traverses visual/logical trees to handle template children
+            // (e.g., TextBoxView inside TextBox, not just TextBox itself).
+            if (IsInteractiveControl(Keyboard.FocusedElement as DependencyObject, e.Key) ||
+                IsInteractiveControl(e.OriginalSource as DependencyObject, e.Key))
             {
-                focusedElement = fce.Parent;
-            }
-
-            var focusedUIElement = focusedElement as UIElement;
-            if (focusedUIElement != null)
-            {
-                // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
-                if (focusedUIElement is System.Windows.Controls.Primitives.TextBoxBase)
-                {
-                    return;
-                }
-
-                // PasswordBox does not inherit from TextBoxBase, so check it explicitly
-                if (focusedUIElement is PasswordBox)
-                {
-                    return;
-                }
-
-                // ComboBox text input field
-                if (focusedUIElement is ComboBox)
-                {
-                    return;
-                }
-
-                // Button activation via Space, and other ButtonBase-derived controls.
-                // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
-                // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
-                // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
-                if (focusedUIElement is ButtonBase && e.Key == Key.Space)
-                {
-                    return;
-                }
+                return;
             }
 
             // Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win).
@@ -790,6 +758,97 @@ namespace TetrisMainWindow
                 {
                     return true;
                 }
+
+                // Traverse the visual tree (handles template children correctly)
+                // with fallback to logical tree when visual parent is null or for non-visual elements.
+                // This ensures we don't get stuck at template boundaries where visual parent is null.
+                DependencyObject parent = null;
+                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
+                {
+                    parent = VisualTreeHelper.GetParent(element);
+                }
+
+                // Fallback to logical parent if visual parent is null or if element is non-visual
+                element = parent ?? LogicalTreeHelper.GetParent(element);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an element or its ancestors are interactive controls that should consume keyboard input
+        /// during gameplay (text editing, button activation, slider/listbox navigation).
+        /// Traverses both visual and logical trees to handle template children (e.g., TextBoxView inside TextBox)
+        /// that would not be matched by direct type checks.
+        /// </summary>
+        /// <param name="element">The element to check (usually FocusedElement or OriginalSource)</param>
+        /// <param name="key">The key being pressed (used to check if Space should activate a button)</param>
+        /// <returns>True if the element or an ancestor is an interactive control that should receive the key</returns>
+        private static bool IsInteractiveControl(DependencyObject element, Key key)
+        {
+            while (element != null)
+            {
+                // FrameworkContentElement (Run, Span, Hyperlink inside rich text) - handle specially
+                if (element is FrameworkContentElement fce)
+                {
+                    element = fce.Parent;
+                    continue;
+                }
+
+                // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
+                // Handle all text input controls
+                if (element is System.Windows.Controls.Primitives.TextBoxBase)
+                {
+                    return true;
+                }
+
+                // PasswordBox does not inherit from TextBoxBase, so check it explicitly
+                if (element is PasswordBox)
+                {
+                    return true;
+                }
+
+                // ComboBox text input field (for editable comboboxes)
+                if (element is ComboBox)
+                {
+                    return true;
+                }
+
+                // Button activation via Space, and other ButtonBase-derived controls
+                // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
+                // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
+                // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
+                if (element is ButtonBase && key == Key.Space)
+                {
+                    return true;
+                }
+
+                // Slider - arrow keys navigate the slider value
+                if (element is Slider && (key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down))
+                {
+                    return true;
+                }
+
+                // ListBox - arrow keys navigate items
+                if (element is ListBox && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // DataGrid - arrow keys navigate cells
+                if (element is System.Windows.Controls.DataGrid && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // TreeView - arrow keys navigate nodes
+                if (element is TreeView && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // Menu and MenuItem should not be checked here; use IsElementInMenu instead
+                // to avoid redundant traversal that's already done in Window_PreviewKeyDown
 
                 // Traverse the visual tree (handles template children correctly)
                 // with fallback to logical tree when visual parent is null or for non-visual elements.
