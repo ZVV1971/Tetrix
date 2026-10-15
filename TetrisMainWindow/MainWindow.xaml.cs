@@ -697,8 +697,9 @@ namespace TetrisMainWindow
             }
 
             // Allow keyboard navigation if the user is interacting with the menu.
-            // This prevents game keys from consuming menu arrow/space input in edge cases.
-            if (Keyboard.FocusedElement is MenuItem || e.OriginalSource is MenuItem)
+            // Check both focus and event source, including menu bar (top-level Menu) and
+            // any child elements within menu templates (TextBlock, Border, etc).
+            if (IsElementInMenu(Keyboard.FocusedElement as DependencyObject) || IsElementInMenu(e.OriginalSource as DependencyObject))
             {
                 return;
             }
@@ -710,6 +711,38 @@ namespace TetrisMainWindow
 
             ProcessGameKey(e.Key);
             e.Handled = true;
+        }
+
+        /// <summary>
+        /// Checks if an element is a menu control or is contained within a menu's visual tree.
+        /// This covers the menu bar (Menu), menu items (MenuItem), and any child elements
+        /// within menu control templates.
+        /// </summary>
+        private static bool IsElementInMenu(DependencyObject element)
+        {
+            if (element == null)
+            {
+                return false;
+            }
+
+            // Check if the element itself is a menu control
+            if (element is Menu || element is MenuItem)
+            {
+                return true;
+            }
+
+            // Walk up the logical tree to check if any ancestor is a menu control
+            DependencyObject parent = LogicalTreeHelper.GetParent(element);
+            while (parent != null)
+            {
+                if (parent is Menu || parent is MenuItem)
+                {
+                    return true;
+                }
+                parent = LogicalTreeHelper.GetParent(parent);
+            }
+
+            return false;
         }
 
         private void ProcessGameKey(Key key)
