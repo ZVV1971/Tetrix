@@ -687,17 +687,28 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        /// Process keyboard events
+        /// Handles game keys through WPF's routed keyboard input, independent of which child has focus.
         /// </summary>
-        private void CellGrid_KeyDown(object sender, KeyEventArgs e)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (!IsGameStarted || IsGamePaused)
             {
                 return;
             }
 
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
+            {
+                return;
+            }
+
+            ProcessGameKey(e.Key);
+            e.Handled = true;
+        }
+
+        private void ProcessGameKey(Key key)
+        {
             List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
-            switch (e.Key)
+            switch (key)
             {
                 case Key.Up:
                     newPos = currentFigure.Rotate(currentFigureCoordinates).ToList();
