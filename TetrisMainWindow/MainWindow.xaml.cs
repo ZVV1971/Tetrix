@@ -717,23 +717,32 @@ namespace TetrisMainWindow
             // This ensures that TextBox, PasswordBox, ComboBox, and other controls can receive keyboard input
             // even when the game is running. Buttons can be activated via Space, and text can be entered.
             // Check both FocusedElement and OriginalSource to handle focus transitions and event origination.
-            var focusedElement = (Keyboard.FocusedElement ?? e.OriginalSource) as UIElement;
-            if (focusedElement != null)
+            var focusedElement = (Keyboard.FocusedElement ?? e.OriginalSource);
+
+            // If focus originates from a FrameworkContentElement (Run, Span, Hyperlink inside rich text),
+            // traverse to its logical parent (e.g., RichTextBox) to correctly classify the control.
+            if (focusedElement is FrameworkContentElement fce)
+            {
+                focusedElement = fce.Parent;
+            }
+
+            var focusedUIElement = focusedElement as UIElement;
+            if (focusedUIElement != null)
             {
                 // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
-                if (focusedElement is System.Windows.Controls.Primitives.TextBoxBase)
+                if (focusedUIElement is System.Windows.Controls.Primitives.TextBoxBase)
                 {
                     return;
                 }
 
                 // PasswordBox does not inherit from TextBoxBase, so check it explicitly
-                if (focusedElement is PasswordBox)
+                if (focusedUIElement is PasswordBox)
                 {
                     return;
                 }
 
                 // ComboBox text input field
-                if (focusedElement is ComboBox)
+                if (focusedUIElement is ComboBox)
                 {
                     return;
                 }
@@ -742,7 +751,7 @@ namespace TetrisMainWindow
                 // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
                 // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
                 // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
-                if (focusedElement is ButtonBase && e.Key == Key.Space)
+                if (focusedUIElement is ButtonBase && e.Key == Key.Space)
                 {
                     return;
                 }
