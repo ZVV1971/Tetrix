@@ -1087,6 +1087,12 @@ namespace TetrisMainWindow
             }
 
             IsGamePaused = !IsGamePaused;
+
+            if (!IsGamePaused)
+            {
+                // Restore keyboard input to the game field after resuming.
+                _ = Keyboard.Focus(cellGrid);
+            }
         }
 
         /// <summary>
