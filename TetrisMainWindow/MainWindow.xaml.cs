@@ -727,7 +727,7 @@ namespace TetrisMainWindow
         /// This covers the menu bar (Menu), menu items (MenuItem), and any child elements
         /// within menu control templates.
         /// Uses VisualTreeHelper to traverse template boundaries and LogicalTreeHelper as fallback
-        /// for non-visual elements.
+        /// for non-visual elements or when visual parent is null at template boundaries.
         /// </summary>
         private static bool IsElementInMenu(DependencyObject element)
         {
@@ -740,15 +740,16 @@ namespace TetrisMainWindow
                 }
 
                 // Traverse the visual tree (handles template children correctly)
-                // with fallback to logical tree for non-visual elements
+                // with fallback to logical tree when visual parent is null or for non-visual elements.
+                // This ensures we don't get stuck at template boundaries where visual parent is null.
+                DependencyObject parent = null;
                 if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
                 {
-                    element = VisualTreeHelper.GetParent(element);
+                    parent = VisualTreeHelper.GetParent(element);
                 }
-                else
-                {
-                    element = LogicalTreeHelper.GetParent(element);
-                }
+
+                // Fallback to logical parent if visual parent is null or if element is non-visual
+                element = parent ?? LogicalTreeHelper.GetParent(element);
             }
 
             return false;
