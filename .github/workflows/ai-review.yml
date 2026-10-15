@@ -32,7 +32,7 @@ jobs:
               "X-GitHub-Api-Version" = "2022-11-28"
           }
           $diffUrl = "https://api.github.com/repos/$env:REPO/pulls/$env:PR_NUMBER"
-          $diff = Invoke-RestMethod -Uri $diffUrl -Headers$ghHeaders -Method Get
+          $diff = Invoke-RestMethod -Uri $diffUrl -Headers $ghHeaders -Method Get
 
           if ([string]::IsNullOrWhiteSpace($diff)) {
               Write-Output "No code changes found."
@@ -91,8 +91,8 @@ jobs:
               catch {
                   Write-Warning "Gemini API request failed on attempt ${attempt}: $($_.Exception.Message)"
           
-                  if ($attempt -lt$maxAttempts) {
-                      $delay = [int][math]::Pow(2,$attempt)
+                  if ($attempt -lt $maxAttempts) {
+                      $delay = [int][math]::Pow(2, $attempt)
                       Write-Output "Retrying in $delay seconds..."
                       Start-Sleep -Seconds $delay
                   }
@@ -114,7 +114,7 @@ jobs:
           }
           
           try {
-              Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body$commentBody -ContentType "application/json"
+              Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body $commentBody -ContentType "application/json"
               Write-Output "Successfully posted AI review to PR #$env:PR_NUMBER"
           } catch {
               Write-Error "Failed to post comment to GitHub: $($_.Exception.Message)"
