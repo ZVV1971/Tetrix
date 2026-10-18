@@ -721,11 +721,26 @@ namespace TetrisMainWindow
                 return;
             }
 
+            var focusedElement = Keyboard.FocusedElement as DependencyObject;
+            var originalSource = e.OriginalSource as DependencyObject;
+
+            // Fast path: if the game grid itself is focused, skip tree traversals entirely
+            // This is the common case during active gameplay and avoids redundant visual/logical tree walks.
+            if (ReferenceEquals(focusedElement, cellGrid))
+            {
+                ProcessGameKey(e.Key);
+                e.Handled = true;
+                return;
+            }
+
+            // Optimization: avoid redundant tree traversals when focusedElement and originalSource are the same
+            bool checkSource = originalSource != null && !ReferenceEquals(focusedElement, originalSource);
+
             // Guard 5: Allow keyboard navigation if the user is interacting with the menu.
             // Check both focus and event source, including menu bar (top-level Menu) and
             // any child elements within menu templates (TextBlock, Border, etc).
             // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
-            if (IsElementInMenu(Keyboard.FocusedElement as DependencyObject) || IsElementInMenu(e.OriginalSource as DependencyObject))
+            if (IsElementInMenu(focusedElement) || (checkSource && IsElementInMenu(originalSource)))
             {
                 return;
             }
@@ -737,8 +752,7 @@ namespace TetrisMainWindow
             // Use IsInteractiveControl which traverses visual/logical trees to handle template children
             // (e.g., TextBoxView inside TextBox, not just TextBox itself).
             // This traversal only occurs for actual game keys, avoiding unnecessary tree walks.
-            if (IsInteractiveControl(Keyboard.FocusedElement as DependencyObject, e.Key) ||
-                IsInteractiveControl(e.OriginalSource as DependencyObject, e.Key))
+            if (IsInteractiveControl(focusedElement, e.Key) || (checkSource && IsInteractiveControl(originalSource, e.Key)))
             {
                 return;
             }
