@@ -96,7 +96,10 @@ namespace TetrisMainWindow
 
         private static string GetCurrentGamerName()
         {
-            return WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
+            var identity = WindowsIdentity.GetCurrent().Name;
+            // Handle both "DOMAIN\username" and standalone "username" formats
+            var parts = identity.Split('\\');
+            return parts.Length > 1 ? parts[parts.Length - 1] : identity;
         }
 
         private double _cellSizeForCanvas;
