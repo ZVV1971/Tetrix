@@ -16,7 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
@@ -69,10 +69,10 @@ jobs:
               contents = @( @{ parts = @( @{ text = "PR Diff:`n`n$diff" } ) } )
           }
             
-          $jsonPayload =$payload | ConvertTo-Json -Depth 10
+          $jsonPayload = $payload | ConvertTo-Json -Depth 10
 
           $maxAttempts = 5
-          $reviewText =$null
+          $reviewText = $null
           
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
               try {
@@ -86,7 +86,7 @@ jobs:
                       -ContentType "application/json; charset=utf-8" `
                       -TimeoutSec 300
           
-                  $reviewText =$geminiResponse.candidates[0].content.parts[0].text
+                  $reviewText = $geminiResponse.candidates[0].content.parts[0].text
                   break
               }
               catch {
@@ -107,13 +107,23 @@ jobs:
 
           # 3. Post the response as a PR comment
           $commentUrl = "https://api.github.com/repos/$env:REPO/issues/$env:PR_NUMBER/comments"
+
+          # GitHub API enforces a 65,536-character maximum on issue/PR comments.
+          # Ensure review text is bounded before posting to avoid HTTP 422 errors.
+          if ($reviewText.Length -gt 65000) {
+              $reviewText = $reviewText.Substring(0, 65000) + "`n`n[Review truncated due to GitHub comment size limit (65,536 chars max)...]"
+          }
+
           $commentBody = @{ body = "### AI Code Review`n`n$reviewText" } | ConvertTo-Json -Depth 5
           
           $postHeaders = @{
               "Authorization" = "Bearer $env:GITHUB_TOKEN"
               "Accept" = "application/vnd.github.v3+json"
           }
-          
+
+          # Note: This workflow uses 'shell: pwsh' (PowerShell Core) instead of 'powershell' (Windows PowerShell 5.1).
+          # PowerShell Core defaults to UTF-8 encoding, which correctly handles non-ASCII characters (emojis, smart quotes, etc.)
+          # in the AI review text. Windows PowerShell 5.1 would encode the body as ISO-8859-1, garbling such characters.
           try {
               Invoke-RestMethod -Uri $commentUrl -Headers $postHeaders -Method Post -Body $commentBody -ContentType "application/json; charset=utf-8"
               Write-Output "Successfully posted AI review to PR #$env:PR_NUMBER"

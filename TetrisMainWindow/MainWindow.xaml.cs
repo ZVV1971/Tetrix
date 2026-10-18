@@ -823,6 +823,19 @@ namespace TetrisMainWindow
                     return true;
                 }
 
+                // RadioButton requires arrow keys (Up, Down, Left, Right) to navigate between options in a group.
+                // RadioButton derives from ButtonBase so we check it separately for arrow key navigation.
+                if (element is RadioButton && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // TabControl/TabItem - arrow keys navigate between tabs
+                if (element is TabControl && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
                 // Slider - arrow keys navigate the slider value
                 if (element is Slider && (key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down))
                 {
@@ -861,70 +874,6 @@ namespace TetrisMainWindow
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Checks if an element is a menu control or is contained within a menu's visual tree.
-        /// This covers the menu bar (Menu), menu items (MenuItem), and any child elements
-        /// within menu control templates.
-        /// Uses VisualTreeHelper to traverse template boundaries and LogicalTreeHelper as fallback
-        /// for non-visual elements or when visual parent is null at template boundaries.
-        /// 
-        /// NOTE: This method is retained for backwards compatibility but is no longer called from
-        /// critical paths. ShouldControlConsumeKeyInput should be used for consolidated tree traversal.
-        /// </summary>
-        [Obsolete("Use ShouldControlConsumeKeyInput or ControlShouldConsumeKey instead for consolidated traversal")]
-        private static bool IsElementInMenu(DependencyObject element)
-        {
-            while (element != null)
-            {
-                // Check if the current element is a menu control
-                if (element is MenuBase || element is MenuItem)
-                {
-                    return true;
-                }
-
-                // FrameworkContentElement (Run, Span, Hyperlink inside menu headers) - handle specially
-                // Unwrap non-visual content elements to access their parent.
-                if (element is FrameworkContentElement fce)
-                {
-                    element = fce.Parent;
-                    continue;
-                }
-
-                // Traverse the visual tree (handles template children correctly)
-                // with fallback to logical tree when visual parent is null or for non-visual elements.
-                // This ensures we don't get stuck at template boundaries where visual parent is null.
-                DependencyObject parent = null;
-                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
-                {
-                    parent = VisualTreeHelper.GetParent(element);
-                }
-
-                // Fallback to logical parent if visual parent is null or if element is non-visual
-                element = parent ?? LogicalTreeHelper.GetParent(element);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if an element or its ancestors are interactive controls that should consume keyboard input
-        /// during gameplay (text editing, button activation, slider/listbox navigation).
-        /// Traverses both visual and logical trees to handle template children (e.g., TextBoxView inside TextBox)
-        /// that would not be matched by direct type checks.
-        /// 
-        /// NOTE: This method is retained for backwards compatibility but is no longer called from
-        /// critical paths. ShouldControlConsumeKeyInput or ControlShouldConsumeKey should be used instead.
-        /// </summary>
-        /// <param name="element">The element to check (usually FocusedElement or OriginalSource)</param>
-        /// <param name="key">The key being pressed (used to check if Space should activate a button)</param>
-        /// <returns>True if the element or an ancestor is an interactive control that should receive the key</returns>
-        [Obsolete("Use ShouldControlConsumeKeyInput or ControlShouldConsumeKey instead for consolidated traversal")]
-        private static bool IsInteractiveControl(DependencyObject element, Key key)
-        {
-            // Delegate to the consolidated method for consistency
-            return ControlShouldConsumeKey(element, key);
         }
 
         private void ProcessGameKey(Key key)
