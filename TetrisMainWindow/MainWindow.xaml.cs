@@ -45,7 +45,7 @@ namespace TetrisMainWindow
 
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             _timer = new DispatcherTimer();
-            _event_interlacer = 0;
+            _eventInterlacer = 0;
             CurrentGamer = GetCurrentGamerName();
         }
 
@@ -171,20 +171,20 @@ namespace TetrisMainWindow
         // holds the current version of the app
         private string _version;
         // indicator-switcher to let differentiate freezing timer events from moving ones
-        private long _event_interlacer;
+        private long _eventInterlacer;
         // the ration of moving event to freezing ones
-        private readonly int _interlace_factor = 3;
+        private readonly int _interlaceFactor = 3;
         // indicator that game is will be finished if no rows are removed
-        private bool _end_of_the_game_indicator;
+        private bool _endOfTheGameIndicator;
         // holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
         // the bigger multiplier is applied when the figure freezes
-        private int _height_of_drop = 0;
+        private int _heightOfDrop = 0;
         // keeps full rows
-        private List<int> _full_rows_list;
+        private List<int> _fullRowsList;
         // a flag for timer initiated movement event that may follow manual drops
-        private static bool _dropped;
+        private bool _dropped;
         // contains additonal information about the changes in the score
-        private string _add_scoring_info;
+        private string _addScoringInfo;
         private readonly object balanceLock = new object();
         // holds the typenames of all the figures
         private string[] figureTypes;
@@ -335,10 +335,10 @@ namespace TetrisMainWindow
 
         public string AdditionalScoringInfo
         {
-            get { return _add_scoring_info; }
+            get { return _addScoringInfo; }
             private set
             {
-                _add_scoring_info = value;
+                _addScoringInfo = value;
                 NotifyPropertyChanged("AdditionalScoringInfo");
             }
         }
@@ -396,7 +396,7 @@ namespace TetrisMainWindow
             if (IsMovementPossible(currentFigureCoordinates) == MovementOutcomes.EndOfPlay)
             {
                 SetNeedsFreezing(true);
-                _end_of_the_game_indicator = true;
+                _endOfTheGameIndicator = true;
             }
         }
 
@@ -492,11 +492,11 @@ namespace TetrisMainWindow
 
                 if (l == _gridWidth)
                 {
-                    _full_rows_list.Add(i);
+                    _fullRowsList.Add(i);
                 }
             }
 
-            int j = currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
+            int j = currentFigureCoordinates.Count * (1 + Math.Max(_heightOfDrop - 1, 0));
             Score += j;
             ShowPopup(
                 (currentFigureCoordinates.Max(x => x.Item1) + currentFigureCoordinates.Min(x => x.Item1)) * _cellSizeForCanvas / 2,
@@ -964,12 +964,12 @@ namespace TetrisMainWindow
         /// </summary>
         private void HideFullRows()
         {
-            int k = _full_rows_list.Max();
+            int k = _fullRowsList.Max();
             int l = k - 1; // starting from the row next to the full one
 
             for (; k >= highestCell; k--, l--)
             {
-                while (_full_rows_list.Contains(l))
+                while (_fullRowsList.Contains(l))
                 {
                     l--;
                 }
@@ -977,12 +977,12 @@ namespace TetrisMainWindow
                 HandleGridRows(k, l);
             }
 
-            highestCell += _full_rows_list.Count;
-            RowsToFinish -= _full_rows_list.Count;
-            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, _full_rows_list.Count).Sum();
+            highestCell += _fullRowsList.Count;
+            RowsToFinish -= _fullRowsList.Count;
+            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, _fullRowsList.Count).Sum();
             Score += j;
-            AdditionalScoringInfo = $"{_full_rows_list.Count} rows completed; {j} points gained.";
-            _full_rows_list.Clear();
+            AdditionalScoringInfo = $"{_fullRowsList.Count} rows completed; {j} points gained.";
+            _fullRowsList.Clear();
             lblAdditionalScoringInfo.Visibility = Visibility.Visible;
             FireInfo();
 
@@ -1030,7 +1030,7 @@ namespace TetrisMainWindow
         /// </summary>
         private void TimerTickerHandler(object sender, EventArgs e)
         {
-            if (_event_interlacer++ % _interlace_factor == 0)
+            if (_eventInterlacer++ % _interlaceFactor == 0)
             {
                 lock (balanceLock)
                 {
@@ -1060,12 +1060,12 @@ namespace TetrisMainWindow
             if (currentFigureCoordinates.Any(x => x.Item2 >= 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
             {
                 FreezeCurrentFigure();
-                if (_full_rows_list.Count > 0)
+                if (_fullRowsList.Count > 0)
                 {
                     HideFullRows();
                 }
 
-                if (_end_of_the_game_indicator)
+                if (_endOfTheGameIndicator)
                 {
                     EndOfTheGame();
                     return;
@@ -1105,22 +1105,22 @@ namespace TetrisMainWindow
                         break;
                     case MovementOutcomes.Possible:
                         // redraw the figure and set OFF necessity to be frozen
-                        _height_of_drop = 0;
+                        _heightOfDrop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(false);
                         break;
                     case MovementOutcomes.NeedsFreezing:
                         // redraw the figure and set ON necessity to be frozen
-                        _height_of_drop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
+                        _heightOfDrop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
                         break;
                     case MovementOutcomes.EndOfPlay:
                         // redraw the figure, set needs freezing ON and set indicator EoG
-                        _height_of_drop = 0;
+                        _heightOfDrop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
-                        _end_of_the_game_indicator = true;
+                        _endOfTheGameIndicator = true;
                         lock (balanceLock)
                         {
                             _dropped = true;
@@ -1173,8 +1173,8 @@ namespace TetrisMainWindow
             Score = 0;
             highestCell = _gridHeight - 1;
             RowsToFinish = _initialRowsToFinish;
-            _end_of_the_game_indicator = false;
-            _event_interlacer = 0;
+            _endOfTheGameIndicator = false;
+            _eventInterlacer = 0;
             _timer.Interval = new TimeSpan(_initialTimeSpan * (100 - (int)GameComplexityLevel * 10) / 100);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
@@ -1183,7 +1183,7 @@ namespace TetrisMainWindow
                 _dropped = false;
             }
 
-            _full_rows_list.Clear();
+            _fullRowsList.Clear();
             _timer.Start();
             pnMenuPanel.IsEnabled = false;
 
@@ -1308,7 +1308,7 @@ namespace TetrisMainWindow
                     cellGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
                 }
 
-                _full_rows_list = new List<int>();
+                _fullRowsList = new List<int>();
 
                 for (int i = 0; i < mainGrid.GetLength(0); i++)
                 {
