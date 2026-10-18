@@ -41,9 +41,9 @@ jobs:
 
           # Increased limit to 1M characters to leverage Gemini 3.8 Flash's massive context window
           $maxDiffLen = 1000000 
-	  if ($diff.Length -gt $maxDiffLen) {
-	      $diff = $diff.Substring(0, $maxDiffLen) + "`n`n[Diff truncated due to length limits...]"
-	  }
+          if ($diff.Length -gt $maxDiffLen) {
+              $diff = $diff.Substring(0, $maxDiffLen) + "`n`n[Diff truncated due to length limits...]"
+          }
 
           # 2. Construct JSON payload and call Gemini
           $geminiModel = if ([string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) { "gemini-3.8-flash" } else { $env:GEMINI_MODEL }
