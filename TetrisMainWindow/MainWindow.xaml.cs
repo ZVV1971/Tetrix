@@ -779,6 +779,14 @@ namespace TetrisMainWindow
                     return true;
                 }
 
+                // FrameworkContentElement (Run, Span, Hyperlink inside menu headers) - handle specially
+                // Unwrap non-visual content elements to access their parent.
+                if (element is FrameworkContentElement fce)
+                {
+                    element = fce.Parent;
+                    continue;
+                }
+
                 // Traverse the visual tree (handles template children correctly)
                 // with fallback to logical tree when visual parent is null or for non-visual elements.
                 // This ensures we don't get stuck at template boundaries where visual parent is null.
