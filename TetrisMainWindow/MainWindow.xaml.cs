@@ -27,6 +27,11 @@ namespace TetrisMainWindow
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Reusable random instance to avoid creating new instances repeatedly
+        /// </summary>
+        private static readonly Random _random = new Random();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -660,22 +665,15 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private TetrisUserControl GetNewFigure()
         {
-            int pInt;
-            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
-            {
-                byte[] rno = new byte[5];
-                rg.GetBytes(rno);
-                int randomvalue = BitConverter.ToInt32(rno, 0);
-                pInt = Math.Abs(randomvalue % figureTypes.Length);
-            }
+            // Select random figure type using shared Random instance
+            int figureIndex = _random.Next(0, figureTypes.Length);
 
             TetrisUserControl fig;
-            Type objectType = Type.GetType(figureTypes[pInt]);
+            Type objectType = Type.GetType(figureTypes[figureIndex]);
             fig = (TetrisUserControl)Activator.CreateInstance(objectType);
 
-            Random r = new Random();
-            int rInt = r.Next(0, Enum.GetNames(typeof(TetrisColors)).Length);
-
+            // Select random color
+            int rInt = _random.Next(0, Enum.GetNames(typeof(TetrisColors)).Length);
             string col = Enum.GetName(typeof(TetrisColors), rInt);
             fig.color = new SolidColorBrush((Color)typeof(Colors).GetProperty(col).GetValue(null, null));
 
