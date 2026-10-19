@@ -193,6 +193,9 @@ namespace TetrisMainWindow
         private bool _shadowModeEnabled = false;
         // keeps track of the shadow figure coordinates
         private List<Tuple<int, int>> shadowFigureCoordinates = new List<Tuple<int, int>>();
+        // cached shadow brush for performance optimization
+        private SolidColorBrush _cachedShadowBrush = null;
+        private Color _cachedShadowBrushColor = Colors.Transparent;
 
         #region Properties
         public GameComplexity GameComplexityLevel
@@ -385,7 +388,7 @@ namespace TetrisMainWindow
                 if (_shadowModeEnabled != value)
                 {
                     _shadowModeEnabled = value;
-                    NotifyPropertyChanged("ShadowModeEnabled");
+                    NotifyPropertyChanged(nameof(ShadowModeEnabled));
                     // Clear shadow when toggling
                     if (IsGameStarted)
                     {
@@ -560,7 +563,20 @@ namespace TetrisMainWindow
                     SolidColorBrush originalBrush = currentFigure.color as SolidColorBrush;
                     Color shadowColor = originalBrush.Color;
                     shadowColor.A = 100; // Set alpha to ~40% opacity
-                    SolidColorBrush shadowBrush = new SolidColorBrush(shadowColor);
+
+                    // Use cached brush if color hasn't changed, otherwise create and cache new one
+                    SolidColorBrush shadowBrush;
+                    if (_cachedShadowBrush != null && _cachedShadowBrushColor == shadowColor)
+                    {
+                        shadowBrush = _cachedShadowBrush;
+                    }
+                    else
+                    {
+                        shadowBrush = new SolidColorBrush(shadowColor);
+                        shadowBrush.Freeze(); // Freeze for better WPF rendering performance
+                        _cachedShadowBrush = shadowBrush;
+                        _cachedShadowBrushColor = shadowColor;
+                    }
 
                     foreach (Tuple<int, int> t in newShadowPos)
                     {
@@ -586,6 +602,16 @@ namespace TetrisMainWindow
         /// </summary>
         private void ClearShadow()
         {
+            // Guard against null/empty currentFigureCoordinates
+            if (currentFigureCoordinates == null || shadowFigureCoordinates == null)
+            {
+                if (shadowFigureCoordinates != null)
+                {
+                    shadowFigureCoordinates.Clear();
+                }
+                return;
+            }
+
             foreach (Tuple<int, int> t in shadowFigureCoordinates)
             {
                 if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
