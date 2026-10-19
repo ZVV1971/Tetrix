@@ -189,6 +189,10 @@ namespace TetrisMainWindow
         // holds the typenames of all the figures
         private string[] figureTypes;
         private GameComplexity _gameComplexity;
+        // shadow figure feature - shows where piece will land when dropped
+        private bool _shadowModeEnabled = false;
+        // keeps track of the shadow figure coordinates
+        private List<Tuple<int, int>> shadowFigureCoordinates = new List<Tuple<int, int>>();
 
         #region Properties
         public GameComplexity GameComplexityLevel
@@ -372,6 +376,24 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("GameFieldSize");
             }
         }
+
+        public bool ShadowModeEnabled
+        {
+            get { return _shadowModeEnabled; }
+            set
+            {
+                if (_shadowModeEnabled != value)
+                {
+                    _shadowModeEnabled = value;
+                    NotifyPropertyChanged("ShadowModeEnabled");
+                    // Clear shadow when toggling
+                    if (IsGameStarted)
+                    {
+                        ClearShadow();
+                    }
+                }
+            }
+        }
         #endregion
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -398,6 +420,8 @@ namespace TetrisMainWindow
                 SetNeedsFreezing(true);
                 _endOfTheGameIndicator = true;
             }
+
+            DrawShadow(); // Draw shadow for the new figure
         }
 
         /// <summary>
@@ -465,6 +489,120 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
+        /// Calculates where the current figure will land when dropped
+        /// Returns a list of coordinates representing the shadow figure position
+        /// The shadow position is where the piece will be right before it freezes (touching the pile or bottom)
+        /// </summary>
+        private List<Tuple<int, int>> CalculateShadowPosition()
+        {
+            if (currentFigureCoordinates == null || currentFigureCoordinates.Count == 0)
+            {
+                return new List<Tuple<int, int>>();
+            }
+
+            List<Tuple<int, int>> shadowPos = new List<Tuple<int, int>>(currentFigureCoordinates);
+
+            // Drop the shadow position step by step until it would collide
+            while (true)
+            {
+                List<Tuple<int, int>> nextShadowPos = new List<Tuple<int, int>>();
+                foreach (Tuple<int, int> coord in shadowPos)
+                {
+                    nextShadowPos.Add(new Tuple<int, int>(coord.Item1, coord.Item2 + 1));
+                }
+
+                MovementOutcomes result = IsMovementPossible(nextShadowPos);
+
+                // Continue while movement is possible
+                if (result == MovementOutcomes.Possible)
+                {
+                    shadowPos = nextShadowPos;
+                }
+                else if (result == MovementOutcomes.NeedsFreezing || result == MovementOutcomes.EndOfPlay)
+                {
+                    // The next position would cause freezing - that's where the piece lands (touching the pile)
+                    shadowPos = nextShadowPos;
+                    break;
+                }
+                else
+                {
+                    // Impossible move - stop at current position
+                    break;
+                }
+            }
+
+            return shadowPos;
+        }
+
+        /// <summary>
+        /// Renders the shadow figure on the grid with a semi-transparent appearance
+        /// </summary>
+        private void DrawShadow()
+        {
+            if (!_shadowModeEnabled || !IsGameStarted)
+            {
+                ClearShadow();
+                return;
+            }
+
+            List<Tuple<int, int>> newShadowPos = CalculateShadowPosition();
+
+            // Only redraw if shadow position has changed
+            if (!newShadowPos.SequenceEqual(shadowFigureCoordinates))
+            {
+                // Clear old shadow
+                ClearShadow();
+
+                // Draw new shadow with semi-transparent color
+                // Use the current figure's color but with reduced opacity
+                if (currentFigure != null && currentFigure.color is SolidColorBrush && newShadowPos.Count > 0)
+                {
+                    SolidColorBrush originalBrush = currentFigure.color as SolidColorBrush;
+                    Color shadowColor = originalBrush.Color;
+                    shadowColor.A = 100; // Set alpha to ~40% opacity
+                    SolidColorBrush shadowBrush = new SolidColorBrush(shadowColor);
+
+                    foreach (Tuple<int, int> t in newShadowPos)
+                    {
+                        // Validate coordinates are within grid bounds
+                        if (t.Item1 >= 0 && t.Item1 < _gridWidth && t.Item2 >= 0 && t.Item2 < _gridHeight)
+                        {
+                            // Only draw shadow on empty cells (not occupied by falling piece or frozen)
+                            if (!currentFigureCoordinates.Contains(t) && !mainGrid[t.Item1, t.Item2].IsFrozen)
+                            {
+                                mainGrid[t.Item1, t.Item2].rect.Fill = shadowBrush;
+                                mainGrid[t.Item1, t.Item2].rect.Visibility = Visibility.Visible;
+                            }
+                        }
+                    }
+
+                    shadowFigureCoordinates = newShadowPos;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears the shadow figure from the grid
+        /// </summary>
+        private void ClearShadow()
+        {
+            foreach (Tuple<int, int> t in shadowFigureCoordinates)
+            {
+                if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
+                {
+                    // Only clear if it's not the current figure and not frozen
+                    if (!currentFigureCoordinates.Contains(t) && !mainGrid[t.Item1, t.Item2].IsFrozen)
+                    {
+                        mainGrid[t.Item1, t.Item2].rect.Fill = new SolidColorBrush(Colors.Transparent);
+                        mainGrid[t.Item1, t.Item2].rect.Visibility = Visibility.Hidden;
+                    }
+                }
+            }
+
+            shadowFigureCoordinates.Clear();
+        }
+
+        /// <summary>
         /// Freezes the current figure -- that's nominally adds it to the pile
         /// and increments the score
         /// </summary>
@@ -497,6 +635,13 @@ namespace TetrisMainWindow
             }
 
             int j = currentFigureCoordinates.Count * (1 + Math.Max(_heightOfDrop - 1, 0));
+
+            // Disable drop bonus when shadow mode is enabled
+            if (_shadowModeEnabled)
+            {
+                j = 0;
+            }
+
             Score += j;
             ShowPopup(
                 (currentFigureCoordinates.Max(x => x.Item1) + currentFigureCoordinates.Min(x => x.Item1)) * _cellSizeForCanvas / 2,
@@ -934,6 +1079,8 @@ namespace TetrisMainWindow
             _timer.Tick -= TimerTickerHandler;
             _timer.Stop();
 
+            ClearShadow(); // Clear shadow when game ends
+
             IsGameStarted = false;
             IsGameOver = true;
 
@@ -1108,12 +1255,14 @@ namespace TetrisMainWindow
                         _heightOfDrop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(false);
+                        DrawShadow(); // Update shadow after movement
                         break;
                     case MovementOutcomes.NeedsFreezing:
                         // redraw the figure and set ON necessity to be frozen
                         _heightOfDrop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
+                        DrawShadow(); // Update shadow after movement
                         break;
                     case MovementOutcomes.EndOfPlay:
                         // redraw the figure, set needs freezing ON and set indicator EoG
@@ -1125,6 +1274,7 @@ namespace TetrisMainWindow
                         {
                             _dropped = true;
                         }
+                        ClearShadow(); // Clear shadow at end of play
                         break;
                 }
             }
