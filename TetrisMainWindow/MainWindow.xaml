@@ -172,6 +172,7 @@
                         <MenuItem IsCheckable="True" Header="Average" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLAvToBool}, Mode=TwoWay}"/>
                         <MenuItem IsCheckable="True" Header="Hard" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLHardToBool}, Mode=TwoWay}"/>
                     </MenuItem>
+                    <MenuItem IsCheckable="True" Header="Shadow Figure" IsChecked="{Binding ShadowModeEnabled, Mode=TwoWay}" ToolTip="Show prediction of piece landing position (disables drop bonus)"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
