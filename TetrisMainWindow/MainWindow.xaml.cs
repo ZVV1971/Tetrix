@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -26,67 +27,95 @@ namespace TetrisMainWindow
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Reusable random instance to avoid creating new instances repeatedly
+        /// </summary>
+        private static readonly Random _random = new Random();
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
-            IsGameStarted = false;
-            IsGamePaused = false;
-            IsGameOver = false;
-            cellSize = 35;
+            InitializeGameState();
+            LoadHighScores();
 
-            _gameComplexity = GameComplexity.Average;
-            if (File.Exists(highScoresFileName))
-            {
-                try
-                {
-                    byte[] data = File.ReadAllBytes(highScoresFileName);
-                    using (MemoryStream outputStream = new MemoryStream())
-                    {
-                        using (MemoryStream inputStream = new MemoryStream(data))
-                        {
-                            using (GZipStream zip = new GZipStream(inputStream, CompressionMode.Decompress))
-                            {
-                                zip.CopyTo(outputStream);
-                            }
-                        }
-
-                        string s = Encoding.UTF8.GetString( outputStream.ToArray());
-                        List<ScoreRecord> intermediateScores  = JsonSerializer.Deserialize<List<ScoreRecord>>(s);
-                        highestScores = intermediateScores;
-                    }
-
-                    SetHighScores();
-                }
-                catch
-                {
-                    highestScores = new List<ScoreRecord>();
-                    HighestScore = 0;
-                    TopGamer = "";
-                }
-            }
-            else highestScores = new List<ScoreRecord>();
 #if DEBUG
             SpeedInfo.Visibility = Visibility.Visible;
 #endif
 
             VersionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-
             _timer = new DispatcherTimer();
+            _eventInterlacer = 0;
+            CurrentGamer = GetCurrentGamerName();
+        }
 
-            _event_interlacer = 0;
-            CurrentGamer = WindowsIdentity.GetCurrent().Name.Split('\\').ToArray().Last();
+        private void InitializeGameState()
+        {
+            IsGameStarted = false;
+            IsGamePaused = false;
+            IsGameOver = false;
+            cellSize = 35;
+            _gameComplexity = GameComplexity.Average;
+        }
+
+        private void LoadHighScores()
+        {
+            if (!File.Exists(highScoresFileName))
+            {
+                highestScores = new List<ScoreRecord>();
+                return;
+            }
+
+            try
+            {
+                byte[] data = File.ReadAllBytes(highScoresFileName);
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    using (MemoryStream inputStream = new MemoryStream(data))
+                    {
+                        using (GZipStream zip = new GZipStream(inputStream, CompressionMode.Decompress))
+                        {
+                            zip.CopyTo(outputStream);
+                        }
+                    }
+
+                    string serializedScores = Encoding.UTF8.GetString(outputStream.ToArray());
+                    List<ScoreRecord> intermediateScores = JsonSerializer.Deserialize<List<ScoreRecord>>(serializedScores);
+                    highestScores = intermediateScores ?? new List<ScoreRecord>();
+                }
+
+                SetHighScores();
+            }
+            catch
+            {
+                ResetHighScores();
+            }
+        }
+
+        private void ResetHighScores()
+        {
+            highestScores = new List<ScoreRecord>();
+            HighestScore = 0;
+            TopGamer = string.Empty;
+        }
+
+        private static string GetCurrentGamerName()
+        {
+            var identity = WindowsIdentity.GetCurrent().Name;
+            // Handle both "DOMAIN\username" and standalone "username" formats
+            var parts = identity.Split('\\');
+            return parts.Length > 1 ? parts[parts.Length - 1] : identity;
         }
 
         private double _cellSizeForCanvas;
         private string _currentGamer;
         private string _topGamer;
         private readonly string highScoresFileName = "highscores.scr";
-        //name, score, level, datetime of the record, game field size, complexity level
+        // name, score, level, datetime of the record, game field size, complexity level
         private List<ScoreRecord> highestScores;
-        //the highest score to be shown in the StatusBar
+        // the highest score to be shown in the StatusBar
         private int _highScore;
-        //the size of cell
+        // the size of cell
         private byte _gridWidth = 20;
         private byte _gridHeight = 40;
         private TetrisUserControl currentFigure;
@@ -94,72 +123,80 @@ namespace TetrisMainWindow
         private TetrisUserControl beforeNextFigure;
         private bool _gameStarted;
         private bool _gamePaused;
-        private readonly int cellSize;
-        //keeps track of the score
+        private int cellSize;
+        // keeps track of the score
         private int _score;
-        //holds the actual value of the current level
+        // holds the actual value of the current level
         private int _level;
-        //Text on the Start button
+        // Text on the Start button
         private string _startButtonText = "Start";
         private string _pauseButtonText = "Pause";
         private string _overOrPauseText = "GAME OVER";
         private bool _isGameOver = false;
-        //Keeps track of rows to be finished before the next level is started
+        // Keeps track of rows to be finished before the next level is started
         private int _rowsToFinish;
-        //An array of Elementary cells -- actually the game zone
-        //made to be created and filled in App rather than in XAML
+        // An array of Elementary cells -- actually the game zone
+        // made to be created and filled in App rather than in XAML
         private ElementaryCell[,] mainGrid;
-        //keeps track of the current figure coordinates
+        // keeps track of the current figure coordinates
         private List<Tuple<int, int>> currentFigureCoordinates;
-        //an inidicator to keep the highest (lowest Y) frozen cell coordinate on the pile
-        //serves to limit the nested cycle
+        // an inidicator to keep the highest (lowest Y) frozen cell coordinate on the pile
+        // serves to limit the nested cycle
         private int highestCell;
-        //number of points added when a row is full
+        // number of points added when a row is full
         private readonly int priceOfTheRow = 100;
-        //initial timespan in Timer ticks
+        // initial timespan in Timer ticks
         private readonly long _initialTimeSpan =
 #if DEBUG
             2000000;
 #else
             1500000;
 #endif
-        //percents of the timespan to decrease the intial (previous) one with
+        // percents of the timespan to decrease the intial (previous) one with
         private readonly int _percTimeSpanDecrease =
 #if DEBUG
             10;
 #else
             15;
 #endif
-        //rows to be filled for the first level
+        // rows to be filled for the first level
         private readonly int _initialRowsToFinish =
 #if DEBUG
             1;
 #else
             10;
 #endif
-        //_timer for down events
+        // _timer for down events
         private readonly DispatcherTimer _timer;
-        //holds the current version of the app
+        // holds the current version of the app
         private string _version;
-        //indicator-switcher to let differentiate freezing timer events from moving ones
-        private long _event_interlacer;
-        //the ration of moving event to freezing ones
-        private readonly int _interlace_factor = 3;
-        //indicator that game is will be finished if no rows are removed
-        private bool _end_of_the_game_indicator;
-        //holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
-        //the bigger multiplier is applied when the figure freezes
-        private int _height_of_drop = 0;
-        //keeps full rows
-        private List<int> _full_rows_list;
-        //a flag for timer initiated movement event that may follow manual drops
-        private static bool _dropped;
-        //contains additonal information about the changes in the score
-        private string _add_scoring_info;
+        // indicator-switcher to let differentiate freezing timer events from moving ones
+        private long _eventInterlacer;
+        // the ration of moving event to freezing ones
+        private readonly int _interlaceFactor = 3;
+        // indicator that game is will be finished if no rows are removed
+        private bool _endOfTheGameIndicator;
+        // holds the height of the "drop", i.e. the bigger the difference between the current position and the new one is
+        // the bigger multiplier is applied when the figure freezes
+        private int _heightOfDrop = 0;
+        // keeps full rows
+        private List<int> _fullRowsList;
+        // a flag for timer initiated movement event that may follow manual drops
+        private bool _dropped;
+        // contains additonal information about the changes in the score
+        private string _addScoringInfo;
         private readonly object balanceLock = new object();
-        //holds the typenames of all the figures
+        // holds the typenames of all the figures
         private string[] figureTypes;
         private GameComplexity _gameComplexity;
+        // shadow figure feature - shows where piece will land when dropped
+        private bool _shadowModeEnabled = false;
+        // keeps track of the shadow figure coordinates
+        private List<Tuple<int, int>> shadowFigureCoordinates = new List<Tuple<int, int>>();
+        // cached shadow brush for performance optimization
+        private SolidColorBrush _cachedShadowBrush = null;
+        private Color _cachedShadowBrushColor = Colors.Transparent;
+
         #region Properties
         public GameComplexity GameComplexityLevel
         {
@@ -170,6 +207,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("GameComplexityLevel");
             }
         }
+
         public string CurrentGamer
         {
             get { return _currentGamer; }
@@ -179,7 +217,9 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("CurrentGamer");
             }
         }
+
         public long Speed => _timer.Interval.Ticks;
+
         public string TopGamer
         {
             get { return _topGamer; }
@@ -189,6 +229,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("TopGamer");
             }
         }
+
         public string startButtonText
         {
             get { return _startButtonText; }
@@ -198,6 +239,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("startButtonText");
             }
         }
+
         public string pauseButtonText
         {
             get { return _pauseButtonText; }
@@ -207,6 +249,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("pauseButtonText");
             }
         }
+
         public string overOrPauseText
         {
             get { return _overOrPauseText; }
@@ -216,6 +259,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("overOrPauseText");
             }
         }
+
         public int Level
         {
             get { return _level; }
@@ -225,6 +269,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("Level");
             }
         }
+
         public int Score
         {
             get { return _score; }
@@ -234,15 +279,17 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("Score");
             }
         }
+
         public bool IsGameStarted
         {
             get { return _gameStarted; }
-            private set 
-            { 
+            private set
+            {
                 _gameStarted = value;
                 NotifyPropertyChanged("IsGameStarted");
             }
         }
+
         public bool IsGamePaused
         {
             get { return _gamePaused; }
@@ -252,6 +299,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("IsGamePaused");
             }
         }
+
         public bool IsGameOver
         {
             get { return _isGameOver; }
@@ -261,6 +309,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("IsGameOver");
             }
         }
+
         public int RowsToFinish
         {
             get { return _rowsToFinish; }
@@ -270,6 +319,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("RowsToFinish");
             }
         }
+
         public int HighestScore
         {
             get { return _highScore; }
@@ -279,6 +329,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("HighestScore");
             }
         }
+
         public string VersionNumber
         {
             get { return _version; }
@@ -288,25 +339,28 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("VersionNumber");
             }
         }
+
         public string AdditionalScoringInfo
         {
-            get { return _add_scoring_info; }
+            get { return _addScoringInfo; }
             private set
             {
-                _add_scoring_info = value;
+                _addScoringInfo = value;
                 NotifyPropertyChanged("AdditionalScoringInfo");
             }
         }
-        public string GameFieldSize 
+
+        public string GameFieldSize
         {
-            get 
-            { 
-                return (string.Format("{0}✕{1}", _gridWidth, _gridHeight));
-            } 
+            get
+            {
+                return string.Format("{0}✕{1}", _gridWidth, _gridHeight);
+            }
         }
+
         public byte GridWidth
         {
-            get {return _gridWidth; }
+            get { return _gridWidth; }
             private set
             {
                 _gridWidth = value;
@@ -314,6 +368,7 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("GameFieldSize");
             }
         }
+
         public byte GridHeight
         {
             get { return _gridHeight; }
@@ -324,13 +379,34 @@ namespace TetrisMainWindow
                 NotifyPropertyChanged("GameFieldSize");
             }
         }
+
+        public bool ShadowModeEnabled
+        {
+            get { return _shadowModeEnabled; }
+            set
+            {
+                if (_shadowModeEnabled != value)
+                {
+                    _shadowModeEnabled = value;
+                    NotifyPropertyChanged(nameof(ShadowModeEnabled));
+                    // Clear shadow when toggling
+                    if (IsGameStarted)
+                    {
+                        ClearShadow();
+                    }
+                }
+            }
+        }
         #endregion
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged(string propName)
         {
             if (PropertyChanged != null)
+            {
                 PropertyChanged(this, new PropertyChangedEventArgs(propName));
+            }
         }
 
         /// <summary>
@@ -345,8 +421,10 @@ namespace TetrisMainWindow
             if (IsMovementPossible(currentFigureCoordinates) == MovementOutcomes.EndOfPlay)
             {
                 SetNeedsFreezing(true);
-                _end_of_the_game_indicator = true;
+                _endOfTheGameIndicator = true;
             }
+
+            DrawShadow(); // Draw shadow for the new figure
         }
 
         /// <summary>
@@ -356,8 +434,8 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private MovementOutcomes IsMovementPossible(IList<Tuple<int, int>> newPosition)
         {
-            //check whether the new position comes outside the playground borders
-            //left, right sides and bottom or overlaps the pile
+            // check whether the new position comes outside the playground borders
+            // left, right sides and bottom or overlaps the pile
             if (newPosition.Where(x => x.Item2 >= 0).Any(y => y.Item1 < 0 || y.Item1 > (_gridWidth - 1) || y.Item2 > (_gridHeight - 1) || mainGrid[y.Item1, y.Item2].IsFrozen))
             {
                 return MovementOutcomes.Impossible;
@@ -365,19 +443,17 @@ namespace TetrisMainWindow
 
             foreach (Tuple<int, int> t in newPosition)
             {
-                //check whether the new postion would touch the upper layer of the pile 
-                //or the bottom and return either End of the Play if any of the cells is
-                //on the first line or NeedsFreezing otherwise
+                // check whether the new postion would touch the upper layer of the pile
+                // or the bottom and return either End of the Play if any of the cells is
+                // on the first line or NeedsFreezing otherwise
                 if (t.Item2 >= -1 && (t.Item2 == (_gridHeight - 1) || mainGrid[t.Item1, t.Item2 + 1].IsFrozen))
                 {
                     if (newPosition.Any((x) => x.Item2 <= 0))
                     {
                         return MovementOutcomes.EndOfPlay;
                     }
-                    else
-                    {
-                        return MovementOutcomes.NeedsFreezing;
-                    }
+
+                    return MovementOutcomes.NeedsFreezing;
                 }
             }
 
@@ -385,8 +461,7 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        /// Clears the old figure and
-        /// draws the current figure on the new position within the playground cells
+        /// Clears the old figure and draws the current figure on the new position within the playground cells
         /// </summary>
         /// <param name="c">Is used to take the filling color for rectangles</param>
         /// <param name="newPos">Provides new positions of the figure</param>
@@ -417,6 +492,143 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
+        /// Calculates where the current figure will land when dropped
+        /// Returns a list of coordinates representing the shadow figure position
+        /// The shadow position is where the piece will be right before it freezes (touching the pile or bottom)
+        /// </summary>
+        private List<Tuple<int, int>> CalculateShadowPosition()
+        {
+            if (currentFigureCoordinates == null || currentFigureCoordinates.Count == 0)
+            {
+                return new List<Tuple<int, int>>();
+            }
+
+            List<Tuple<int, int>> shadowPos = new List<Tuple<int, int>>(currentFigureCoordinates);
+
+            // Drop the shadow position step by step until it would collide
+            while (true)
+            {
+                List<Tuple<int, int>> nextShadowPos = new List<Tuple<int, int>>();
+                foreach (Tuple<int, int> coord in shadowPos)
+                {
+                    nextShadowPos.Add(new Tuple<int, int>(coord.Item1, coord.Item2 + 1));
+                }
+
+                MovementOutcomes result = IsMovementPossible(nextShadowPos);
+
+                // Continue while movement is possible
+                if (result == MovementOutcomes.Possible)
+                {
+                    shadowPos = nextShadowPos;
+                }
+                else if (result == MovementOutcomes.NeedsFreezing || result == MovementOutcomes.EndOfPlay)
+                {
+                    // The next position would cause freezing - that's where the piece lands (touching the pile)
+                    shadowPos = nextShadowPos;
+                    break;
+                }
+                else
+                {
+                    // Impossible move - stop at current position
+                    break;
+                }
+            }
+
+            return shadowPos;
+        }
+
+        /// <summary>
+        /// Renders the shadow figure on the grid with a semi-transparent appearance
+        /// </summary>
+        private void DrawShadow()
+        {
+            if (!_shadowModeEnabled || !IsGameStarted)
+            {
+                ClearShadow();
+                return;
+            }
+
+            List<Tuple<int, int>> newShadowPos = CalculateShadowPosition();
+
+            // Only redraw if shadow position has changed
+            if (!newShadowPos.SequenceEqual(shadowFigureCoordinates))
+            {
+                // Clear old shadow
+                ClearShadow();
+
+                // Draw new shadow with semi-transparent color
+                // Use the current figure's color but with reduced opacity
+                if (currentFigure != null && currentFigure.color is SolidColorBrush && newShadowPos.Count > 0)
+                {
+                    SolidColorBrush originalBrush = currentFigure.color as SolidColorBrush;
+                    Color shadowColor = originalBrush.Color;
+                    shadowColor.A = 100; // Set alpha to ~40% opacity
+
+                    // Use cached brush if color hasn't changed, otherwise create and cache new one
+                    SolidColorBrush shadowBrush;
+                    if (_cachedShadowBrush != null && _cachedShadowBrushColor == shadowColor)
+                    {
+                        shadowBrush = _cachedShadowBrush;
+                    }
+                    else
+                    {
+                        shadowBrush = new SolidColorBrush(shadowColor);
+                        shadowBrush.Freeze(); // Freeze for better WPF rendering performance
+                        _cachedShadowBrush = shadowBrush;
+                        _cachedShadowBrushColor = shadowColor;
+                    }
+
+                    foreach (Tuple<int, int> t in newShadowPos)
+                    {
+                        // Validate coordinates are within grid bounds
+                        if (t.Item1 >= 0 && t.Item1 < _gridWidth && t.Item2 >= 0 && t.Item2 < _gridHeight)
+                        {
+                            // Only draw shadow on empty cells (not occupied by falling piece or frozen)
+                            if (!currentFigureCoordinates.Contains(t) && !mainGrid[t.Item1, t.Item2].IsFrozen)
+                            {
+                                mainGrid[t.Item1, t.Item2].rect.Fill = shadowBrush;
+                                mainGrid[t.Item1, t.Item2].rect.Visibility = Visibility.Visible;
+                            }
+                        }
+                    }
+
+                    shadowFigureCoordinates = newShadowPos;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears the shadow figure from the grid
+        /// </summary>
+        private void ClearShadow()
+        {
+            // Guard against null/empty currentFigureCoordinates
+            if (currentFigureCoordinates == null || shadowFigureCoordinates == null)
+            {
+                if (shadowFigureCoordinates != null)
+                {
+                    shadowFigureCoordinates.Clear();
+                }
+                return;
+            }
+
+            foreach (Tuple<int, int> t in shadowFigureCoordinates)
+            {
+                if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
+                {
+                    // Only clear if it's not the current figure and not frozen
+                    if (!currentFigureCoordinates.Contains(t) && !mainGrid[t.Item1, t.Item2].IsFrozen)
+                    {
+                        mainGrid[t.Item1, t.Item2].rect.Fill = new SolidColorBrush(Colors.Transparent);
+                        mainGrid[t.Item1, t.Item2].rect.Visibility = Visibility.Hidden;
+                    }
+                }
+            }
+
+            shadowFigureCoordinates.Clear();
+        }
+
+        /// <summary>
         /// Freezes the current figure -- that's nominally adds it to the pile
         /// and increments the score
         /// </summary>
@@ -424,8 +636,10 @@ namespace TetrisMainWindow
         {
             foreach (Tuple<int, int> t in currentFigureCoordinates)
             {
-                if (t.Item1 >=0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >=0 && t.Item2 <= (_gridHeight - 1))
-                mainGrid[t.Item1, t.Item2].IsFrozen = true;
+                if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
+                {
+                    mainGrid[t.Item1, t.Item2].IsFrozen = true;
+                }
             }
 
             _cellSizeForCanvas = mainGrid[1, 1].rect.ActualWidth;
@@ -434,14 +648,31 @@ namespace TetrisMainWindow
                 int l = 0;
                 for (int k = 0; k < _gridWidth; k++)
                 {
-                    if (mainGrid[k, i].IsFrozen) l++;
+                    if (mainGrid[k, i].IsFrozen)
+                    {
+                        l++;
+                    }
                 }
-                if (l == _gridWidth) _full_rows_list.Add(i);
+
+                if (l == _gridWidth)
+                {
+                    _fullRowsList.Add(i);
+                }
             }
 
-            int j = currentFigureCoordinates.Count * (1 + Math.Max(_height_of_drop - 1, 0));
+            int j = currentFigureCoordinates.Count * (1 + Math.Max(_heightOfDrop - 1, 0));
+
+            // Disable drop bonus when shadow mode is enabled
+            if (_shadowModeEnabled)
+            {
+                j = 0;
+            }
+
             Score += j;
-            ShowPopup((currentFigureCoordinates.Max(x => x.Item1) + currentFigureCoordinates.Min(x => x.Item1)) * _cellSizeForCanvas / 2, (currentFigureCoordinates.Min(x => x.Item2) - 1) * _cellSizeForCanvas, $"{1 + Math.Max(_height_of_drop - 1, 0)}*{currentFigureCoordinates.Count}={j}");
+            ShowPopup(
+                (currentFigureCoordinates.Max(x => x.Item1) + currentFigureCoordinates.Min(x => x.Item1)) * _cellSizeForCanvas / 2,
+                (currentFigureCoordinates.Min(x => x.Item2) - 1) * _cellSizeForCanvas,
+                $"+{j}");
             highestCell = Math.Min(highestCell, currentFigureCoordinates.Min(x => x.Item2));
         }
 
@@ -473,7 +704,7 @@ namespace TetrisMainWindow
 
             DispatcherTimer tmr = new DispatcherTimer
             {
-                //Set the timer interval to the length of the animation.
+                // Set the timer interval to the length of the animation.
                 Interval = new TimeSpan(0, 0, 4)
             };
             tmr.Tick += delegate (object snd, EventArgs ea)
@@ -491,13 +722,13 @@ namespace TetrisMainWindow
         }
 
         /// <summary>
-        ///Starts animation on the additional info about full lines 
+        /// Starts animation on the additional info about full lines
         /// </summary>
         private void FireInfo()
         {
             DispatcherTimer tmr = new DispatcherTimer
             {
-                //Set the timer interval to the length of the animation.
+                // Set the timer interval to the length of the animation.
                 Interval = new TimeSpan(0, 0, 1)
             };
             tmr.Tick += delegate (object snd, EventArgs ea)
@@ -510,13 +741,13 @@ namespace TetrisMainWindow
             tmr.Start();
         }
 
-        ///<summary>
-        ///Set the Needs to Freeze status (depending on the <paramref name="flag"/> value )
-        ///for those cell in the elementary cell grid that correspond to the current figure coordinates.
-        ///</summary>
+        /// <summary>
+        /// Set the Needs to Freeze status (depending on the <paramref name="flag"/> value)
+        /// for those cell in the elementary cell grid that correspond to the current figure coordinates.
+        /// </summary>
         private void SetNeedsFreezing(bool flag)
         {
-            foreach(Tuple<int,int> t in currentFigureCoordinates)
+            foreach (Tuple<int, int> t in currentFigureCoordinates)
             {
                 if (t.Item1 >= 0 && t.Item1 <= (_gridWidth - 1) && t.Item2 >= 0 && t.Item2 <= (_gridHeight - 1))
                 {
@@ -578,12 +809,12 @@ namespace TetrisMainWindow
             Canvas.SetLeft(nextFigure, nextFigureCell.ActualWidth / 2 - nextFigure.Width / 2);
             Canvas.SetBottom(nextFigure, nextFigureCell.ActualHeight / 2 - nextFigure.Height / 2);
             nextFigureCell.Children.Add(nextFigure);
-            nextFigureCell.ToolTip = nextFigure.GetType().Name.Replace("Control", String.Empty).Replace("Tetris", String.Empty);
+            nextFigureCell.ToolTip = nextFigure.GetType().Name.Replace("Control", string.Empty).Replace("Tetris", string.Empty);
 
             Canvas.SetLeft(beforeNextFigure, figureBeforeTheNextCell.ActualWidth / 2 - beforeNextFigure.Width / 2);
             Canvas.SetBottom(beforeNextFigure, figureBeforeTheNextCell.ActualHeight / 2 - beforeNextFigure.Height / 2);
             figureBeforeTheNextCell.Children.Add(beforeNextFigure);
-            figureBeforeTheNextCell.ToolTip = beforeNextFigure.GetType().Name.Replace("Control", String.Empty).Replace("Tetris", String.Empty);
+            figureBeforeTheNextCell.ToolTip = beforeNextFigure.GetType().Name.Replace("Control", string.Empty).Replace("Tetris", string.Empty);
         }
 
         /// <summary>
@@ -593,7 +824,7 @@ namespace TetrisMainWindow
         private void InsertNewFigure(TetrisUserControl t)
         {
             currentFigureCoordinates = new List<Tuple<int, int>>();
-            foreach(Tuple<int, int> tp in t.InitialPosition)
+            foreach (Tuple<int, int> tp in t.InitialPosition)
             {
                 currentFigureCoordinates.Add(new Tuple<int, int>((_gridWidth / 2) + tp.Item1, tp.Item2));
             }
@@ -605,45 +836,222 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private TetrisUserControl GetNewFigure()
         {
-            int pInt;
-            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
-            {
-                byte[] rno = new byte[5];
-                rg.GetBytes(rno);
-                int randomvalue = BitConverter.ToInt32(rno, 0);
-                pInt = Math.Abs(randomvalue % figureTypes.Length);
-            }
+            // Select random figure type using shared Random instance
+            int figureIndex = _random.Next(0, figureTypes.Length);
+
             TetrisUserControl fig;
-            Type objectType = Type.GetType(figureTypes[pInt]);
+            Type objectType = Type.GetType(figureTypes[figureIndex]);
             fig = (TetrisUserControl)Activator.CreateInstance(objectType);
 
-            Random r = new Random();
-            int rInt = r.Next(0, Enum.GetNames(typeof(TetrisColors)).Length);
-
+            // Select random color
+            int rInt = _random.Next(0, Enum.GetNames(typeof(TetrisColors)).Length);
             string col = Enum.GetName(typeof(TetrisColors), rInt);
-
             fig.color = new SolidColorBrush((Color)typeof(Colors).GetProperty(col).GetValue(null, null));
 
             return fig;
         }
 
-        ///<summary>
-        ///Sets focus on the main canvas so as to enable it to catch keyboard pressing
-        ///</summary>
+        /// <summary>
+        /// Sets focus on the main canvas so as to enable it to catch keyboard pressing
+        /// </summary>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Keyboard.Focus(cellGrid);
         }
 
         /// <summary>
-        /// Process keyboard events
+        /// Handles game keys through WPF's routed keyboard input, independent of which child has focus.
+        /// Guards are ordered by performance: fast checks first, expensive tree traversals last.
         /// </summary>
-        private void CellGrid_KeyDown(object sender, KeyEventArgs e)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (!IsGameStarted | IsGamePaused) { return; }
+            // Guard 1: Only accept arrow keys and Space for game input
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && e.Key != Key.Space)
+            {
+                return;
+            }
 
+            // Guard 2: Game must be started and not paused
+            if (!IsGameStarted || IsGamePaused)
+            {
+                return;
+            }
+
+            // Guard 3: Ignore keystrokes with modifier keys (Ctrl, Alt, Shift, Win)
+            // This allows system shortcuts (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Left/Right for word navigation, IME switching, etc.)
+            // and application-level shortcuts to work properly without being consumed by game input.
+            if (Keyboard.Modifiers != ModifierKeys.None)
+            {
+                return;
+            }
+
+            // Guard 4: Allow keyboard navigation if the user is in menu mode (Alt or F10 pressed to activate menu bar).
+            // In menu mode, Keyboard.FocusedElement may still be on the game field, but WPF is processing
+            // menu navigation keys, so we must not intercept them.
+            if (InputManager.Current.IsInMenuMode)
+            {
+                return;
+            }
+
+            var focusedElement = Keyboard.FocusedElement as DependencyObject;
+            var originalSource = e.OriginalSource as DependencyObject;
+
+            // Fast path: if the game grid itself is focused, skip tree traversals entirely
+            // This is the common case during active gameplay and avoids redundant visual/logical tree walks.
+            if (ReferenceEquals(focusedElement, cellGrid))
+            {
+                ProcessGameKey(e.Key);
+                e.Handled = true;
+                return;
+            }
+
+            // Consolidated check: returns true if the focused element or original source (if different)
+            // should consume the keyboard input. This single walk replaces four separate traversals.
+            if (ShouldControlConsumeKeyInput(focusedElement, originalSource, e.Key))
+            {
+                return;
+            }
+
+            // All guards passed: consume the game key
+            ProcessGameKey(e.Key);
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Consolidated check that returns true if either the focused element or original source
+        /// (if different) should consume the keyboard input (menu navigation or interactive control).
+        /// This replaces four separate tree traversals with a single unified walk up the visual/logical tree.
+        /// </summary>
+        /// <param name="focusedElement">The element that currently has keyboard focus</param>
+        /// <param name="originalSource">The original source of the keyboard event</param>
+        /// <param name="key">The key being pressed</param>
+        /// <returns>True if the key should be passed to a control rather than consumed for game input</returns>
+        private static bool ShouldControlConsumeKeyInput(DependencyObject focusedElement, DependencyObject originalSource, Key key)
+        {
+            // Check if focusedElement should consume the key
+            if (focusedElement != null && ControlShouldConsumeKey(focusedElement, key))
+            {
+                return true;
+            }
+
+            // Only check originalSource if it's different from focusedElement to avoid redundant tree walks
+            if (originalSource != null && !ReferenceEquals(focusedElement, originalSource) && ControlShouldConsumeKey(originalSource, key))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Traverses the visual and logical tree to check if an element or any ancestor
+        /// is a menu control or interactive control that should consume keyboard input.
+        /// Consolidates the tree traversal logic from IsElementInMenu and IsInteractiveControl
+        /// to avoid redundant walks up the visual/logical tree on every keystroke.
+        /// </summary>
+        private static bool ControlShouldConsumeKey(DependencyObject element, Key key)
+        {
+            while (element != null)
+            {
+                // Check if the current element is a menu control
+                if (element is MenuBase || element is MenuItem)
+                {
+                    return true;
+                }
+
+                // FrameworkContentElement (Run, Span, Hyperlink inside text or menu headers) - handle specially
+                // Unwrap non-visual content elements to access their parent.
+                if (element is FrameworkContentElement fce)
+                {
+                    element = fce.Parent;
+                    continue;
+                }
+
+                // TextBoxBase and derived controls (TextBox, RichTextBox, etc)
+                // Handle all text input controls
+                if (element is System.Windows.Controls.Primitives.TextBoxBase)
+                {
+                    return true;
+                }
+
+                // PasswordBox does not inherit from TextBoxBase, so check it explicitly
+                if (element is PasswordBox)
+                {
+                    return true;
+                }
+
+                // ComboBox text input field (for editable comboboxes)
+                if (element is ComboBox)
+                {
+                    return true;
+                }
+
+                // Button activation via Space, and other ButtonBase-derived controls
+                // IMPORTANT: When a button has focus via mouse click during active gameplay, Space will activate it.
+                // This is intentional for UI accessibility. Only buttons that don't need keyboard interaction
+                // should have Focusable="False" in XAML (see StartButton, PauseButton, etc.)
+                if (element is ButtonBase && key == Key.Space)
+                {
+                    return true;
+                }
+
+                // RadioButton requires arrow keys (Up, Down, Left, Right) to navigate between options in a group.
+                // RadioButton derives from ButtonBase so we check it separately for arrow key navigation.
+                if (element is RadioButton && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // TabControl/TabItem - arrow keys navigate between tabs
+                if (element is TabControl && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // Slider - arrow keys navigate the slider value
+                if (element is Slider && (key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down))
+                {
+                    return true;
+                }
+
+                // ListBox - arrow keys navigate items
+                if (element is ListBox && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // DataGrid - arrow keys navigate cells
+                if (element is System.Windows.Controls.DataGrid && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // TreeView - arrow keys navigate nodes
+                if (element is TreeView && (key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right))
+                {
+                    return true;
+                }
+
+                // Traverse the visual tree (handles template children correctly)
+                // with fallback to logical tree when visual parent is null or for non-visual elements.
+                // This ensures we don't get stuck at template boundaries where visual parent is null.
+                DependencyObject parent = null;
+                if (element is Visual || element is System.Windows.Media.Media3D.Visual3D)
+                {
+                    parent = VisualTreeHelper.GetParent(element);
+                }
+
+                // Fallback to logical parent if visual parent is null or if element is non-visual
+                element = parent ?? LogicalTreeHelper.GetParent(element);
+            }
+
+            return false;
+        }
+
+        private void ProcessGameKey(Key key)
+        {
             List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
-            switch (e.Key)
+            switch (key)
             {
                 case Key.Up:
                     newPos = currentFigure.Rotate(currentFigureCoordinates).ToList();
@@ -668,6 +1076,7 @@ namespace TetrisMainWindow
                     {
                         _dropped = true;
                     }
+
                     int k = 1;
                     do
                     {
@@ -676,6 +1085,7 @@ namespace TetrisMainWindow
                         {
                             newPos.Add(new Tuple<int, int>(i.Item1, i.Item2 + k));
                         }
+
                         k += 1;
                     }
                     while (IsMovementPossible(newPos) == MovementOutcomes.Possible);
@@ -694,6 +1104,8 @@ namespace TetrisMainWindow
         {
             _timer.Tick -= TimerTickerHandler;
             _timer.Stop();
+
+            ClearShadow(); // Clear shadow when game ends
 
             IsGameStarted = false;
             IsGameOver = true;
@@ -725,21 +1137,25 @@ namespace TetrisMainWindow
         /// </summary>
         private void HideFullRows()
         {
-            int k = _full_rows_list.Max();
-            int l = k - 1; //starting from the row next to the full one
-            
+            int k = _fullRowsList.Max();
+            int l = k - 1; // starting from the row next to the full one
+
             for (; k >= highestCell; k--, l--)
             {
-                while (_full_rows_list.Contains(l)) { l--; }
+                while (_fullRowsList.Contains(l))
+                {
+                    l--;
+                }
+
                 HandleGridRows(k, l);
             }
 
-            highestCell += _full_rows_list.Count;
-            RowsToFinish -= _full_rows_list.Count;
-            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, _full_rows_list.Count).Sum();
+            highestCell += _fullRowsList.Count;
+            RowsToFinish -= _fullRowsList.Count;
+            int j = (int)(priceOfTheRow * (1 + 0.1 * _level)) * Enumerable.Range(1, _fullRowsList.Count).Sum();
             Score += j;
-            AdditionalScoringInfo = $"{_full_rows_list.Count} rows completed; {j} points gained.";
-            _full_rows_list.Clear();
+            AdditionalScoringInfo = $"{_fullRowsList.Count} rows completed; {j} points gained.";
+            _fullRowsList.Clear();
             lblAdditionalScoringInfo.Visibility = Visibility.Visible;
             FireInfo();
 
@@ -763,13 +1179,13 @@ namespace TetrisMainWindow
         /// </summary>
         private void HandleGridRows(int dest_row, int source_row)
         {
-            //Reset the destination row
+            // Reset the destination row
             for (int i = 0; i <= _gridWidth - 1; i++)
             {
                 mainGrid[i, dest_row].Reset();
             }
 
-            //Copy the source row into the destination
+            // Copy the source row into the destination
             for (int i = 0; i <= _gridWidth - 1; i++)
             {
                 if (mainGrid[i, source_row].IsFrozen)
@@ -787,7 +1203,7 @@ namespace TetrisMainWindow
         /// </summary>
         private void TimerTickerHandler(object sender, EventArgs e)
         {
-            if (_event_interlacer++ % _interlace_factor == 0)
+            if (_eventInterlacer++ % _interlaceFactor == 0)
             {
                 lock (balanceLock)
                 {
@@ -796,6 +1212,7 @@ namespace TetrisMainWindow
                         return;
                     }
                 }
+
                 ProcessMovement(GetNextFigurePosition());
             }
             else
@@ -816,12 +1233,17 @@ namespace TetrisMainWindow
             if (currentFigureCoordinates.Any(x => x.Item2 >= 0 && mainGrid[x.Item1, x.Item2].NeedsFreeze))
             {
                 FreezeCurrentFigure();
-                if (_full_rows_list.Count > 0) { HideFullRows(); }
-                if (_end_of_the_game_indicator)
+                if (_fullRowsList.Count > 0)
+                {
+                    HideFullRows();
+                }
+
+                if (_endOfTheGameIndicator)
                 {
                     EndOfTheGame();
                     return;
                 }
+
                 DoNextFigure();
             }
         }
@@ -832,7 +1254,7 @@ namespace TetrisMainWindow
         /// <returns></returns>
         private List<Tuple<int, int>> GetNextFigurePosition()
         {
-            List<Tuple<int, int>>  newPos = new List<Tuple<int, int>>();
+            List<Tuple<int, int>> newPos = new List<Tuple<int, int>>();
             foreach (Tuple<int, int> i in currentFigureCoordinates)
             {
                 newPos.Add(new Tuple<int, int>(i.Item1, i.Item2 + 1));
@@ -848,34 +1270,37 @@ namespace TetrisMainWindow
         {
             if (nextPos.Count > 0)
             {
-                //Check the possible result of the movement
+                // Check the possible result of the movement
                 switch (IsMovementPossible(nextPos))
                 {
                     case MovementOutcomes.Impossible:
-                        //do nothing
+                        // do nothing
                         break;
                     case MovementOutcomes.Possible:
-                        //redraw the figure and set OFF necessity to be frozen
-                        _height_of_drop = 0;
+                        // redraw the figure and set OFF necessity to be frozen
+                        _heightOfDrop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(false);
+                        DrawShadow(); // Update shadow after movement
                         break;
                     case MovementOutcomes.NeedsFreezing:
-                        //redraw the figure and set ON necessity to be frozen
-                        _height_of_drop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
+                        // redraw the figure and set ON necessity to be frozen
+                        _heightOfDrop = nextPos.First().Item2 - currentFigureCoordinates.First().Item2;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
+                        DrawShadow(); // Update shadow after movement
                         break;
                     case MovementOutcomes.EndOfPlay:
-                        //redraw the figure, set needs freezing ON and set indicator EoG
-                        _height_of_drop = 0;
+                        // redraw the figure, set needs freezing ON and set indicator EoG
+                        _heightOfDrop = 0;
                         DrawFigure(currentFigure, nextPos);
                         SetNeedsFreezing(true);
-                        _end_of_the_game_indicator = true;
+                        _endOfTheGameIndicator = true;
                         lock (balanceLock)
                         {
                             _dropped = true;
                         }
+                        ClearShadow(); // Clear shadow at end of play
                         break;
                 }
             }
@@ -886,12 +1311,12 @@ namespace TetrisMainWindow
         /// </summary>
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-
             if (IsGameStarted)
             {
                 _timer.Tick -= TimerTickerHandler;
                 _timer.Stop();
             }
+
             if (IsGamePaused)
             {
                 pauseButtonText = "Pause";
@@ -903,8 +1328,8 @@ namespace TetrisMainWindow
 
             figureTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(q => t.IsAssignableFrom(q) 
-                    && !q.FullName.Contains("Interfaces") 
+                .Where(q => t.IsAssignableFrom(q)
+                    && !q.FullName.Contains("Interfaces")
                     && q.GetCustomAttribute<ComplexityAttribute>().Complexity <= GameComplexityLevel)
                 .Select(x => x.FullName + ", TetrisFigures")
                 .ToArray();
@@ -916,15 +1341,16 @@ namespace TetrisMainWindow
             nextFigureCell.Children.Clear();
             figureBeforeTheNextCell.Children.Clear();
             DoNextFigure();
-            //Start the game
+
+            // Start the game
             IsGameStarted = true;
             startButtonText = "Restart";
             Level = 0;
             Score = 0;
             highestCell = _gridHeight - 1;
             RowsToFinish = _initialRowsToFinish;
-            _end_of_the_game_indicator = false;
-            _event_interlacer = 0;
+            _endOfTheGameIndicator = false;
+            _eventInterlacer = 0;
             _timer.Interval = new TimeSpan(_initialTimeSpan * (100 - (int)GameComplexityLevel * 10) / 100);
             _timer.Tick += TimerTickerHandler;
             NotifyPropertyChanged("Speed");
@@ -932,17 +1358,18 @@ namespace TetrisMainWindow
             {
                 _dropped = false;
             }
-            _full_rows_list.Clear();
+
+            _fullRowsList.Clear();
             _timer.Start();
             pnMenuPanel.IsEnabled = false;
 
-            //Return focus to the main canvas so as to allow it catching keyboard events
+            // Return focus to the main canvas so as to allow it catching keyboard events
             _ = Keyboard.Focus(cellGrid);
         }
 
         /// <summary>
         /// Shows the high score window for the current game field size
-        /// </summary
+        /// </summary>
         private void ShowHighScores(object sender, MouseButtonEventArgs e)
         {
             highestScores.Sort((p1, p2) => -p1.score.CompareTo(p2.score));
@@ -973,7 +1400,7 @@ namespace TetrisMainWindow
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -1006,7 +1433,14 @@ namespace TetrisMainWindow
                 overOrPauseText = "GAME OVER";
                 _timer.Start();
             }
+
             IsGamePaused = !IsGamePaused;
+
+            if (!IsGamePaused)
+            {
+                // Restore keyboard input to the game field after resuming.
+                _ = Keyboard.Focus(cellGrid);
+            }
         }
 
         /// <summary>
@@ -1032,7 +1466,6 @@ namespace TetrisMainWindow
         {
             if (cellGrid.RowDefinitions.Count != _gridHeight)
             {
-
                 mainGrid = new ElementaryCell[_gridWidth, _gridHeight];
 
                 if (cellGrid.RowDefinitions.Count != 0)
@@ -1045,12 +1478,13 @@ namespace TetrisMainWindow
                 {
                     cellGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
                 }
+
                 for (int j = 1; j <= _gridHeight; j++)
                 {
                     cellGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
                 }
 
-                _full_rows_list = new List<int>();
+                _fullRowsList = new List<int>();
 
                 for (int i = 0; i < mainGrid.GetLength(0); i++)
                 {
@@ -1086,8 +1520,9 @@ namespace TetrisMainWindow
             }
             catch
             {
-                TopGamer = "";
+                TopGamer = string.Empty;
             }
+
             HighestScore = i;
         }
     }

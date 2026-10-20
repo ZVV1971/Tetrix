@@ -1,0 +1,26 @@
+name: Weekly Automated Code Review
+
+on:
+  schedule:
+    # Runs at 18:00 UTC every Sunday
+    - cron: '0 18 * * 0'
+  workflow_dispatch: # Allows you to trigger it manually for testing
+
+jobs:
+  review:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run GitHub Super-Linter
+        uses: github/super-linter@v5
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

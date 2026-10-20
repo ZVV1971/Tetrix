@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -8,13 +8,14 @@ namespace TetrisFigures.Converters
     {
         public object Convert(object[] values, Type sourceType, object parameter, CultureInfo culture)
         {
-            foreach(object o in values)
+            foreach (object o in values)
             {
                 if ((bool)o)
                 {
                     return System.Windows.Visibility.Visible;
                 }
             }
+
             return System.Windows.Visibility.Hidden;
         }
 

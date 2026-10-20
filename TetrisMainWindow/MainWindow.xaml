@@ -7,7 +7,7 @@
         xmlns:conv="clr-namespace:TetrisFigures.Converters;assembly=TetrisFigures"
         mc:Ignorable="d"
         Title="Tetrix"
-        ResizeMode="NoResize" Width="650" Height="910" Focusable="False" Loaded="Window_Loaded" Closed="Window_Closed">
+        ResizeMode="NoResize" Width="650" Height="910" Focusable="False" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown" Closed="Window_Closed">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:MultiBoolToVisibilityConverter x:Key="MultiBoolToVis"/>
@@ -172,10 +172,11 @@
                         <MenuItem IsCheckable="True" Header="Average" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLAvToBool}, Mode=TwoWay}"/>
                         <MenuItem IsCheckable="True" Header="Hard" IsChecked="{Binding GameComplexityLevel, Converter={StaticResource GLHardToBool}, Mode=TwoWay}"/>
                     </MenuItem>
+                    <MenuItem IsCheckable="True" Header="Shadow Figure" IsChecked="{Binding ShadowModeEnabled, Mode=TwoWay}" ToolTip="Show prediction of piece landing position (disables drop bonus)"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
-        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding IsGameStarted}" PreviewKeyDown="CellGrid_KeyDown" Panel.ZIndex="0">
+        <Grid x:Name="cellGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" Background="Black" Focusable="{Binding IsGameStarted}" Panel.ZIndex="0">
         </Grid>
         <Canvas Grid.Column="1" Grid.Row="2" Grid.RowSpan="8" x:Name="cnvInformation" Background="Transparent" Panel.ZIndex="1"/>
         <TextBlock Grid.Column="3" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource GeneralStyle_tb}" Text="NEXT FIGURE:"/>
