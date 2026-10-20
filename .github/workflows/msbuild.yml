@@ -2,7 +2,7 @@ name: "Workflow for master and release branches"
 
 on:
   push:
-    branches: [ "releases/*" ]
+    branches: [ "release/*" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
