@@ -32,6 +32,21 @@ jobs:
         persist-credentials: false
         set-safe-directory: false
 
+    - name: Ensure GitHub CLI is Installed and in PATH
+      shell: powershell
+      run: |
+          # 1. Install gh if missing on the runner host
+          if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+            Write-Host "gh executable not found. Installing via winget..."
+            winget install --id GitHub.cli --exact --source winget --accept-package-agreements --accept-source-agreements
+          }
+
+          # 2. Add install path to GITHUB_PATH for remaining steps
+          $ghInstallPath = "C:\Program Files\GitHub CLI"
+          if (Test-Path $ghInstallPath) {
+            echo "$ghInstallPath" >> $env:GITHUB_PATH
+          }
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
 
