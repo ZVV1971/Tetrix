@@ -120,12 +120,13 @@ jobs:
             $releasenumber = $($releasenumber.Split(".")[0] + "."+$releasenumber.Split(".")[1] + "."+ $releasenumber.Split(".")[2] + "."+ ([int]($releasenumber.Split(".")[3]) + 1).ToString());
           };
           Write-Host $releasenumber;
-          
+
           # Make the Zipped version of the release
-          Compress-Archive -Path ./publish-output/* -DestinationPath ./TetrisMainWindow/$("Tetrix." + $releasenumber + ".zip");
-          
+          $zipPath = "./TetrisMainWindow/Tetrix.$releasenumber.zip"
+          Compress-Archive -Path ./publish-output/* -DestinationPath $zipPath;
+
           # Post release
-          gh release create  $releasenumber ./TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip") ;
+          gh release create $releasenumber $zipPath;
       continue-on-error: true
 
 
