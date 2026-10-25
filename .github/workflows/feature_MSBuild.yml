@@ -33,11 +33,24 @@ jobs:
         fetch-depth: 0
         set-safe-directory: false
 
+    - name: Check if .NET is Already Installed
+      id: dotnet_check
+      shell: pwsh
+      run: |
+        if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+          $version = dotnet --version
+          Write-Host "dotnet is already installed: $version"
+          echo "installed=true" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Host "dotnet is not installed, will install..."
+          echo "installed=false" >> $env:GITHUB_OUTPUT
+        }
+
     - name: Setup .NET
+      if: steps.dotnet_check.outputs.installed == 'false'
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.x'
-        cache: true
 
     - name: Add .NET to PATH
       shell: pwsh
