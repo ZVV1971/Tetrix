@@ -32,6 +32,11 @@ jobs:
         persist-credentials: false
         set-safe-directory: false
 
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.x'
+
     - name: Ensure GitHub CLI is Installed and in PATH
       shell: powershell
       run: |
@@ -66,7 +71,7 @@ jobs:
       uses: dlemstra/code-sign-action@v1
       with:
           certificate: '${{ secrets.TNL_PFX }}'
-          folder: '${{env.SOLUTION_FILE_PATH}}\publish-output'
+          folder: './publish-output'
           recursive: true
           files: |
             Tetris.exe
@@ -96,9 +101,10 @@ jobs:
           Write-Host $releasenumber;
           
           # Make the Zipped version of the release
-          Compress-Archive -Path ${{env.SOLUTION_FILE_PATH}}\publish-output\* -DestinationPath ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip");
+          Compress-Archive -Path ./publish-output/* -DestinationPath ./TetrisMainWindow/$("Tetrix." + $releasenumber + ".zip");
           
           # Post release
-          gh release create  $releasenumber ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip") ;
+          gh release create  $releasenumber ./TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip") ;
       continue-on-error: true
+
 
