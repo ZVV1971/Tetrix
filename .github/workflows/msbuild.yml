@@ -57,11 +57,20 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
+
+    - name: Determine Build Output Path
+      id: build_path
+      shell: pwsh
+      run: |
+        $buildOutputPath = Get-ChildItem -Path "${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\bin\Release" -Directory | Select-Object -First 1 -ExpandProperty FullName
+        Write-Host "Build output path: $buildOutputPath"
+        echo "output_path=$buildOutputPath" >> $env:GITHUB_OUTPUT
+
     - name: Sign the DLL & EXE files
       uses: dlemstra/code-sign-action@v1
       with:
           certificate: '${{ secrets.TNL_PFX }}'
-          folder: '${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\bin\Release\net10.0-windows'
+          folder: '${{ steps.build_path.outputs.output_path }}'
           recursive: true
           files: |
             Tetris.exe
@@ -74,6 +83,7 @@ jobs:
       shell: pwsh
       run: |
           # Get the TITLE of the latest release
+          $buildOutputPath = '${{ steps.build_path.outputs.output_path }}'
           $last_release = gh release list --limit 1;
           Write-Host $last_release;
           if(-not $last_release) {$last_release = '0.0.0.0'};
@@ -91,7 +101,7 @@ jobs:
           Write-Host $releasenumber;
           
           # Make the Zipped version of the release
-          Compress-Archive -Path ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\bin\Release\net10.0-windows\* -DestinationPath ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip"); 
+          Compress-Archive -Path $buildOutputPath\* -DestinationPath ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip");
           
           # Post release
           gh release create  $releasenumber ${{env.SOLUTION_FILE_PATH}}\TetrisMainWindow\$("Tetrix." + $releasenumber + ".zip") ;
