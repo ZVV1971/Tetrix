@@ -122,7 +122,7 @@ jobs:
           Write-Host $releasenumber;
 
           # Make the Zipped version of the release
-          $zipPath = "./TetrisMainWindow/Tetrix.$releasenumber.zip"
+          $zipPath = Join-Path -Path "TetrisMainWindow" -ChildPath "Tetrix.$releasenumber.zip"
           Compress-Archive -Path ./publish-output/* -DestinationPath $zipPath;
 
           # Post release
