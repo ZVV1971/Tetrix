@@ -37,15 +37,15 @@ jobs:
 
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: dotnet restore ${{env.SOLUTION_FILE_PATH}}
+      run: |
+        MSBuild -t:restore ${{env.SOLUTION_FILE_PATH}}
+        MSBuild -t:restore ${{env.SOLUTION_FILE_PATH}} -p:RestorePackagesConfig=true
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: dotnet build --configuration ${{env.BUILD_CONFIGURATION}} --no-restore ${{env.SOLUTION_FILE_PATH}}
-
-    - name: Publish Single-File Executable
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: dotnet publish TetrisMainWindow/TetrisMainWindow.csproj --configuration ${{env.BUILD_CONFIGURATION}} --self-contained --output ./bin/publish --no-build --no-restore
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
 
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
