@@ -43,9 +43,5 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: dotnet build --configuration ${{env.BUILD_CONFIGURATION}} --no-restore ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Publish Single-File Executable
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: dotnet publish TetrisMainWindow/TetrisMainWindow.csproj --configuration ${{env.BUILD_CONFIGURATION}} --self-contained --output ./bin/publish --no-build --no-restore
-
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration ${{env.BUILD_CONFIGURATION}}
