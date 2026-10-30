@@ -26,7 +26,7 @@ namespace TetrisTests.Figures.ThreeDots
 
         [TestCaseSource(nameof(ThreeDotsPositions)), Description("Test that ThreeDots figure rotated changes position")]
         [Apartment(ApartmentState.STA)]
-        public void TestThreeDotsRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int d)
+        public void TestThreeDotsRotation_OldPos_nonEqual_NewPos(IList<Tuple<int, int>> pos, int _)
         {
             Assert.AreNotEqual(ctrl.GetPositionNumber(pos), ctrl.GetPositionNumber(ctrl.Rotate(pos)));
         }
@@ -40,7 +40,7 @@ namespace TetrisTests.Figures.ThreeDots
 
             // With 2 positions, the difference should be ±1 (wrapping)
             int diff = Math.Abs(posnum - rotatedPosnum);
-            Assert.That(diff == 1);
+            Assert.That(diff, Is.EqualTo(1));
         }
 
         [TestCaseSource(nameof(ThreeDotsPositions)), Description("Test that ThreeDots figure being rotated twice returns to the same position")]
