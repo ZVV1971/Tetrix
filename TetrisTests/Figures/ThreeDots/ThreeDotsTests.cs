@@ -33,7 +33,7 @@ namespace TetrisTests.Figures.ThreeDots
 
         [TestCaseSource(nameof(ThreeDotsPositions)), Description("Test that ThreeDots figure rotation changes position by 1")]
         [Apartment(ApartmentState.STA)]
-        public void TestThreeDotsRotation_OldPos_NewPos_diff_in_1(IList<Tuple<int, int>> pos, int d)
+        public void TestThreeDotsRotation_OldPos_NewPos_diff_in_1(IList<Tuple<int, int>> pos, int _)
         {
             int posnum = ctrl.GetPositionNumber(pos);
             int rotatedPosnum = ctrl.GetPositionNumber(ctrl.Rotate(pos));
